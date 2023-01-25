@@ -3,8 +3,8 @@ unit BooruScraper.Client.Rule34us;
 interface
 uses
   Classes, Types, SysUtils, System.Generics.Collections,
-  System.Net.URLClient, System.Net.HttpClientComponent, System.Net.HttpClient,
-  BooruScraper.Interfaces, BooruScraper.ClientBase;
+  BooruScraper.Interfaces, BooruScraper.ClientBase,
+  RESTREquest4D;
 
 const
   /// <summary>Base url for rule34.xxx.</summary>
@@ -32,41 +32,56 @@ end;
 
 function TRule34usClient.GetPost(AId: TBooruId): IBooruPost;
 var
+  LRequest: IRequest;
+  LResponse: IResponse;
   LContent: string;
-  LUrl: TURI;
 begin
-  LUrl := TURI.Create(Self.Host + '/index.php?r=posts/view');
-  LUrl.AddParameter('id', AId.ToString);
+  LRequest := TRequest.New;
+  LRequest.BaseURL(Self.Host + '/index.php?r=posts/view')
+    .AddParam('id', AId.ToString);
 
-  LContent := Client.Get(LUrl.ToString).ContentAsString;
+  BeforeDoingRequest(LRequest);
+  LResponse := LRequest.Get;
+  LContent := LResponse.Content;
+
   Result := BooruParser.ParsePostFromPage(LContent);
 end;
 
 function TRule34usClient.GetPostComments(APostId: TBooruId;
   APage: integer): TBooruCommentAr;
 var
+  LRequest: IRequest;
+  LResponse: IResponse;
   LContent: string;
-  LUrl: TURI;
 begin
-  LUrl := TURI.Create(Self.Host + '/index.php?r=posts/view');
-  LUrl.AddParameter('id', APostId.ToString);
-  LUrl.AddParameter('page', APage.ToString);
+  LRequest := TRequest.New;
+  LRequest.BaseURL(Self.Host + '/index.php?r=posts/view')
+    .AddParam('id', APostId.ToString)
+    .AddParam('page', APage.ToString);
 
-  LContent := Client.Get(LUrl.ToString).ContentAsString;
+  BeforeDoingRequest(LRequest);
+  LResponse := LRequest.Get;
+  LContent := LResponse.Content;
+
   Result := BooruParser.ParseCommentsFromPostPage(LContent);
 end;
 
 function TRule34usClient.GetPosts(ARequest: string;
   APage: integer): TBooruThumbAr;
 var
+  LRequest: IRequest;
+  LResponse: IResponse;
   LContent: string;
-  LUrl: TURI;
 begin
-  LUrl := TURI.Create(Self.Host + '/index.php?r=posts/index');
-  LUrl.AddParameter('q', ARequest);
-  LUrl.AddParameter('page', APage.ToString);
+  LRequest := TRequest.New;
+  LRequest.BaseURL(Self.Host + '/index.php?r=posts/index')
+    .AddParam('q', ARequest)
+    .AddParam('page', APage.ToString);
 
-  LContent := Client.Get(LUrl.ToString).ContentAsString;
+  BeforeDoingRequest(LRequest);
+  LResponse := LRequest.Get;
+  LContent := LResponse.Content;
+
   Result := BooruParser.ParsePostsFromPage(LContent);
 end;
 

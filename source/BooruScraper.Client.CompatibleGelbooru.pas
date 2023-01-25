@@ -3,8 +3,8 @@
 interface
 uses
   Classes, Types, SysUtils, System.Generics.Collections,
-  System.Net.URLClient, System.Net.HttpClientComponent, System.Net.HttpClient,
-  BooruScraper.Interfaces, BooruScraper.ClientBase;
+  BooruScraper.Interfaces, BooruScraper.ClientBase,
+  RESTRequest4D;
 
 const
   /// <summary>Base url for gelbooru.com.</summary>
@@ -44,41 +44,59 @@ end;
 
 function TGelbooruLikeClient.GetPost(AId: TBooruId): IBooruPost;
 var
+  LRequest: IRequest;
+  LResponse: IResponse;
   LContent: string;
-  LUrl: TURI;
 begin
-  LUrl := TURI.Create(Self.Host + '/index.php?page=post&s=view');
-  LUrl.AddParameter('id', AId.ToString);
+  LRequest := TRequest.New;
+  LRequest.BaseURL(Self.Host + '/index.php?page=post&s=view')
+    .AddParam('id', AId.ToString);
 
-  LContent := Client.Get(LUrl.ToString).ContentAsString;
+  BeforeDoingRequest(LRequest);
+  LResponse := LRequest.Get;
+  LContent := LResponse.Content;
+
   Result := BooruParser.ParsePostFromPage(LContent);
 end;
 
 function TGelbooruLikeClient.GetPostComments(APostId: TBooruId;
   APage: integer): TBooruCommentAr;
 var
+  LRequest: IRequest;
+  LResponse: IResponse;
   LContent: string;
-  LUrl: TURI;
 begin
-  LUrl := TURI.Create(Self.Host + '/index.php?page=post&s=view');
-  LUrl.AddParameter('id', APostId.ToString);
-  LUrl.AddParameter('pid', Self.PageNumPostToPid(APage).ToString);
+  LRequest := TRequest.New;
+  LRequest.BaseURL(Self.Host + '/index.php?page=post&s=view')
+    .AddParam('id', APostId.ToString)
+    .AddParam('pid', Self.PageNumPostToPid(APage).ToString);
 
-  LContent := Client.Get(LUrl.ToString).ContentAsString;
+  BeforeDoingRequest(LRequest);
+  LResponse := LRequest.Get;
+  LContent := LResponse.Content;
+
   Result := BooruParser.ParseCommentsFromPostPage(LContent);
 end;
 
 function TGelbooruLikeClient.GetPosts(ARequest: string;
   APage: integer): TBooruThumbAr;
 var
+  LRequest: IRequest;
+  LResponse: IResponse;
   LContent: string;
-  LUrl: TURI;
 begin
-  LUrl := TURI.Create(Self.Host + '/index.php?page=post&s=list');
-  LUrl.AddParameter('tags', ARequest);
-  LUrl.AddParameter('pid', PageNumToPid(APage).ToString);
+  LRequest := TRequest.New;
+  LRequest.BaseURL(Self.Host + '/index.php?page=post&s=list')
+    .AddParam('tags', ARequest)
+    .AddParam('pid', Self.PageNumPostToPid(APage).ToString);
 
-  LContent := Client.Get(LUrl.ToString).ContentAsString;
+  BeforeDoingRequest(LRequest);
+  LResponse := LRequest.Get;
+  LContent := LResponse.Content;
+//  Writeln(LResponse.ContentType + ' ' + LResponse.ContentEncoding + ' ' + lResponse.StatusCode.ToString + ' ' + LResponse.StatusText);
+//  Writeln('Content Length: ' + LResponse.ContentLength.ToString);
+//  Writeln(LResponse.Content);
+
   Result := BooruParser.ParsePostsFromPage(LContent);
 end;
 

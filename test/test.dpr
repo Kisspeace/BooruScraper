@@ -12,6 +12,7 @@ uses
   System.Generics.Collections,
   Net.HttpClient,
   Net.HttpClientComponent,
+  RESTRequest4D,
   BooruScraper.Interfaces in '..\source\BooruScraper.Interfaces.pas',
   BooruScraper.ClientBase in '..\source\BooruScraper.ClientBase.pas',
   BooruScraper.Client.CompatibleGelbooru in '..\source\BooruScraper.Client.CompatibleGelbooru.pas',
@@ -25,28 +26,41 @@ uses
   BooruScraper.Parser.rule34us in '..\source\BooruScraper.Parser.rule34us.pas',
   BooruScraper.Client.Rule34us in '..\source\BooruScraper.Client.Rule34us.pas';
 
+type
+
+  TApp = Class
+    public
+      procedure BeforeRequest(var ARequest: IRequest);
+  End;
+
 var
   Client: IBooruClient;
+  App: TApp;
 
-procedure SetWebClient(AClient: TNetHttpClient);
+procedure SetProps(var AClient: IRR4DClient);
 begin
-  with AClient do begin
-    AutomaticDecompression := [THttpCompressionMethod.Any];
-    AllowCookies := false;
-    Useragent                        := 'Mozilla/5.0 (Windows NT 10.0; rv:91.0) Gecko/20100101 Firefox/91.0';
-    Customheaders['Accept']          := 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8';
-    CustomHeaders['Accept-Language'] := 'en-US,en;q=0.5';
-    CustomHeaders['Accept-Encoding'] := 'gzip, deflate';
-    CustomHeaders['DNT']             := '1';
-    CustomHeaders['Connection']      := 'keep-alive';
-    CustomHeaders['Upgrade-Insecure-Requests'] := '1';
-    CustomHeaders['Sec-Fetch-Dest']  := 'document';
-    CustomHeaders['Sec-Fetch-Mode']  := 'navigate';
-    CustomHeaders['Sec-Fetch-Site']  := 'same-origin';
-    CustomHeaders['Pragma']          := 'no-cache';
-    CustomHeaders['Cache-Control']   := 'no-cache';
-  end;
+  AClient.BeforeRequest := App.BeforeRequest;
 end;
+
+//procedure SetWebClient(ARequest: TNetHttpClient);
+//begin
+//  with AClient do begin
+//    AutomaticDecompression := [THttpCompressionMethod.Any];
+//    AllowCookies := false;
+//    Useragent                        := 'Mozilla/5.0 (Windows NT 10.0; rv:108.0) Gecko/20100101 Firefox/108.0';
+//    Customheaders['Accept']          := 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8';
+//    CustomHeaders['Accept-Language'] := 'en-US,en;q=0.5';
+//    CustomHeaders['Accept-Encoding'] := 'gzip, deflate';
+//    CustomHeaders['DNT']             := '1';
+//    CustomHeaders['Connection']      := 'keep-alive';
+//    CustomHeaders['Upgrade-Insecure-Requests'] := '1';
+//    CustomHeaders['Sec-Fetch-Dest']  := 'document';
+//    CustomHeaders['Sec-Fetch-Mode']  := 'navigate';
+//    CustomHeaders['Sec-Fetch-Site']  := 'same-origin';
+//    CustomHeaders['Pragma']          := 'no-cache';
+//    CustomHeaders['Cache-Control']   := 'no-cache';
+//  end;
+//end;
 
 function createtag(AValue: string): IBooruTag;
 begin
@@ -192,10 +206,34 @@ var
   LPost: IBooruPost;
   LPosts: TBooruPostAr;
   LThumbs: TBooruThumbAr;
+{ TApp }
+
+procedure TApp.BeforeRequest(var ARequest: IRequest);
+begin
+  ARequest.UserAgent('Mozilla/5.0 (Windows NT 10.0; rv:108.0) Gecko/20100101 Firefox/108.0')
+  .AddHeader('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8')
+  .AddHeader('Accept-Language', 'en-US,en;q=0.5')
+  .AddHeader('Accept-Encoding', 'gzip, deflate')
+  .AddHeader('DNT', '1')
+  .AddHeader('Connection', 'keep-alive')
+  .AddHeader('Upgrade-Insecure-Requests', '1')
+  .AddHeader('Sec-Fetch-Dest', 'document')
+  .AddHeader('Sec-Fetch-Mode', 'navigate')
+  .AddHeader('Sec-Fetch-Site', 'same-origin')
+  .AddHeader('Pragma', 'no-cache')
+  .AddHeader('Cache-Control', 'no-cache');
+end;
+
 begin
   try
-    Client := BooruScraper.NewClientRule34us;
-    SetWebClient(TBooruClientBase(Client).Client);
+    App := TApp.Create;
+
+    Client := BooruScraper.NewClientRule34xxx;
+//    SetWebClient(TBooruClientBase(Client).Client);
+    var LRR4DClient: IRR4DClient;
+    if Supports(Client, IRR4DClient, LRR4DClient) then
+      SetProps(LRR4DClient);
+
     TestClient(Client);
 //    TestParser(LClient.BooruParser, 'rule34us');
 
