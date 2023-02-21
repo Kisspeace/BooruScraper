@@ -39,7 +39,7 @@ end;
 
 function NewClientGelbooru: IBooruClient;
 begin
-  Result := NewClient(TGelbooruLikeClient, TGelbooruParser, GELBOORU_URL);
+  Result := NewClient(TGelbooruClient, TGelbooruParser, GELBOORU_URL);
 end;
 
 function NewClientRealbooru: IBooruClient;

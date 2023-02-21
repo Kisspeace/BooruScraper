@@ -192,11 +192,14 @@ var
   LPost: IBooruPost;
   LPosts: TBooruPostAr;
   LThumbs: TBooruThumbAr;
+  LAllContentSwitch: IEnableAllContent;
 begin
   try
-    Client := BooruScraper.NewClientRule34us;
+    Client := BooruScraper.NewClientGelbooru;
     SetWebClient(TBooruClientBase(Client).Client);
-    TestClient(Client);
+    if Supports(Client, IEnableAllContent, LAllContentSwitch) then
+      LAllContentSwitch.EnableAllContent := True;
+    TestClient(Client, 'shota');
 //    TestParser(LClient.BooruParser, 'rule34us');
 
     Readln;

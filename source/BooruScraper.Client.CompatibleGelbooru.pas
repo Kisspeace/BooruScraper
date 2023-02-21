@@ -32,6 +32,14 @@ type
       constructor Create; overload; override;
   End;
 
+  TGelbooruClient = Class(TGelbooruLikeClient, IEnableAllContent)
+    private
+      procedure SetEnableAllContent(const value: boolean);
+      function GetEnableAllContent: boolean;
+    public
+      property EnableAllContent: boolean read GetEnableAllContent write SetEnableAllContent;
+  end;
+
 implementation
 
 { TRule34xxxClient }
@@ -90,6 +98,31 @@ end;
 function TGelbooruLikeClient.PageNumToPid(APage: integer): cardinal;
 begin
   Result := POSTS_PER_PAGE * APage;
+end;
+
+{ TGelbooruClient }
+
+function TGelbooruClient.GetEnableAllContent: boolean;
+var
+  LCookie: TCookie;
+begin
+  for LCookie in Client.CookieManager.Cookies do begin
+    if (LCookie.Name = 'fringeBenefits')
+    and (LCookie.Value = 'yup') then begin
+      Result := True;
+      Exit;
+    end;
+  end;
+  Result := False;
+end;
+
+procedure TGelbooruClient.SetEnableAllContent(const value: boolean);
+var
+  LCookie: TCookie;
+begin
+  if value then
+    Client.CookieManager.AddServerCookie('fringeBenefits=yup', self.Host);
+  { Currently cant be disabled. }
 end;
 
 end.

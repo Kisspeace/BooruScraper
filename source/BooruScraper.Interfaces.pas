@@ -187,6 +187,16 @@ type
     property Host: string read GetHost write SetHost;
   End;
 
+  IEnableAllContent = Interface
+    ['{3FE23949-71AC-4055-B579-6BF517B71EA2}']
+    { private }
+    procedure SetEnableAllContent(const value: boolean);
+    function GetEnableAllContent: boolean;
+    { public }
+    /// <summary>Gelbooru: "This will enable access to more fringe results".</summary>
+    property EnableAllContent: boolean read GetEnableAllContent write SetEnableAllContent;
+  End;
+
   TCloneMachine = Class
     public
       class function CloneAr<T: IAssignAndClone>(ASource: TArray<T>): TArray<T>; static;
