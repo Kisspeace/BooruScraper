@@ -11,8 +11,8 @@ const
   GELBOORU_URL = 'https://gelbooru.com';
   /// <summary>Base url for rule34.xxx.</summary>
   RULE34XXX_URL = 'https://rule34.xxx';
-  /// <summary>Base url for rule34.xxx.</summary>
-  REALBOORU_URL = 'https://rule34.us';
+  /// <summary>Base url for realbooru.com.</summary>
+  REALBOORU_URL = 'https://realbooru.com';
 
   /// <summary>Max thumbnails count given by one request.</summary>
   POSTS_PER_PAGE = 42;
@@ -85,7 +85,6 @@ begin
   LUrl := TURI.Create(Self.Host + '/index.php?page=post&s=list');
   LUrl.AddParameter('tags', ARequest);
   LUrl.AddParameter('pid', PageNumToPid(APage).ToString);
-
   LContent := Client.Get(LUrl.ToString).ContentAsString;
   Result := BooruParser.ParsePostsFromPage(LContent);
 end;
