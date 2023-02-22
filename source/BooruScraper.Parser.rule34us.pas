@@ -1,4 +1,4 @@
-unit BooruScraper.Parser.rule34us;
+﻿unit BooruScraper.Parser.rule34us;
 
 interface
 uses
@@ -19,9 +19,6 @@ type
   End;
 
 implementation
-
-
-
 
 { TRule34usParser }
 
@@ -116,15 +113,20 @@ begin
 
   var LContentPush := FindXByClass(LDoc, 'content_push');
   if Assigned(LContentPush) then begin
+
     var LVideo := FindXFirst(LContentPush, '//video');
     if Assigned(LVideo) then begin
+
       var LSource := LVideo.FindX('//source');
       if LSource.Count > 0 then
         Result.ContentUrl := LSource[0].Attributes['src'];
+
     end else begin
+
       LTmp := FindXFirst(LContentPush, '//img');
       if Assigned(LTmp) then
         Result.Thumbnail := LTmp.Attrs['src'];
+
     end;
 
     Result.Comments.AddRange(Self.ParseCommentsFromElement(LContentPush));
@@ -133,6 +135,7 @@ begin
   { Tags }
   var LTagBar := FindXByClass(LDoc, 'tag-list-left');
   if Assigned(LTagBar) then begin
+
     LTmps := LTagBar.Find('li');
     for I := 0 to LTmps.Count - 1 do begin
       LTmp := LTmps.Items[I];

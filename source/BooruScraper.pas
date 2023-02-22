@@ -1,4 +1,4 @@
-unit BooruScraper;
+﻿unit BooruScraper;
 
 interface
 uses

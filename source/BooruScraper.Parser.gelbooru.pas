@@ -1,4 +1,4 @@
-unit BooruScraper.Parser.gelbooru;
+﻿unit BooruScraper.Parser.gelbooru;
 
 interface
 uses
@@ -145,10 +145,6 @@ begin
     var LAvatar := LAvas[I];
     var LBody := FindXByClass(LComment, 'commentBody');
 
-//    for N := 0 to LBody.ChildrenCount - 1 do begin
-//      writeln('Text[' + N.ToString + ']: ' + LBody.Children[N].Text);
-//    end;
-
     { Comment Author username }
     try
       LStr := Trim(LBody.FindX('//a/b')[0].Text);
@@ -157,7 +153,7 @@ begin
 
     end;
 
-    LStr2 := LBody.Children[2].Text; // username commented at 2021-10-12 08:39:21 � #1111111
+    LStr2 := LBody.Children[2].Text; // username commented at 2021-10-12 08:39:21 » #1111111
 
     { Comment Id } //FIXME
     try
@@ -178,7 +174,6 @@ begin
 
     { Comment text }
     try
-//      LStr := GetBetween(LStr2, '#' + LNewComment.Id.ToString, SLineBreak);
       LStr := LBody.Children[5].Text; // Comment text here
       LNewComment.Text := Trim(THTMLEncoding.HTML.Decode(LStr));
     except
@@ -208,6 +203,5 @@ begin
   LDoc := ParserHtml(ASource);
   Result := ParseCommentsFromPostPage(LDoc);
 end;
-
 
 end.

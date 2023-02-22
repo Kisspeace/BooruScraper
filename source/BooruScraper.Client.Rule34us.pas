@@ -1,4 +1,4 @@
-unit BooruScraper.Client.Rule34us;
+﻿unit BooruScraper.Client.Rule34us;
 
 interface
 uses

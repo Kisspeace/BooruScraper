@@ -1,4 +1,4 @@
-unit BooruScraper.Parser.Realbooru;
+﻿unit BooruScraper.Parser.Realbooru;
 
 interface
 uses
@@ -64,8 +64,11 @@ begin
     { ContentUrl (image) }
     var LImage := FindXById(LImageContainer, 'image');
     if Assigned(LImage) then begin
+
       Result.ContentUrl := LImage.Attributes['src'];
+
     end else begin
+
       { ContentUrl (video) }
       var LVid := FindXById(LImageContainer, 'gelcomVideoPlayer');
       if Assigned(LVid) then begin
@@ -73,11 +76,13 @@ begin
         if LSource.Count > 0 then
           Result.ContentUrl := LSource[0].Attributes['src'];
       end;
+
     end;
 
     { Tags }
     var LTagContainer := FindXById(LImageContainer, 'tagLink');
     if Assigned(LTagContainer) then begin
+
       var LTags := LTagContainer.FindX('//a');
 
       for I := 0 to LTags.Count - 1 do begin

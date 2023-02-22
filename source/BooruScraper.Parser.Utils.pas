@@ -5,15 +5,11 @@ uses
   Classes, Types, SysUtils, System.Generics.Collections,
   HtmlParserEx, BooruScraper.Interfaces;
 
-
   function FindXFirst(AElement: IHtmlElement; const AXPath: WideString): IHtmlElement;
   function FindXByClass(AElement: IHtmlElement; AClass: string): IHtmlElement;
   function FindXById(AElement: IHtmlElement; AId: string): IHtmlElement;
   function FindAllByClass(AElement: IHtmlElement; AClass: string): IHtmlElementList;
   function FindByText(AElement: IHtmlElement; AText: string; ATrim: boolean = True; AIgnoreCase: boolean = False): IHtmlElement;
-
-//  function GetBefore(const ASource: string; ASubStr: string): string;
-//  function GetAfter(const ASource: string; ASubStr: string): string;
 
   /// <summary>Returns string between two sub strings.</summaru>
   function GetBetween(const ASource: string; ALeft, ARight: string): string;
@@ -24,6 +20,7 @@ uses
   function NormalizeTags(ATags: TArray<String>): TArray<String>;
 
 const
+
   BOORU_TIME_FORMAT: TFormatSettings = (
     DateSeparator: '-';
     TimeSeparator: ':';
