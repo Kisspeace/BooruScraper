@@ -23,7 +23,9 @@ uses
   BooruScraper.Serialize.XSuperObject in '..\source\BooruScraper.Serialize.XSuperObject.pas',
   BooruScraper.Parser.Realbooru in '..\source\BooruScraper.Parser.Realbooru.pas',
   BooruScraper.Parser.rule34us in '..\source\BooruScraper.Parser.rule34us.pas',
-  BooruScraper.Client.Rule34us in '..\source\BooruScraper.Client.Rule34us.pas';
+  BooruScraper.Client.Rule34us in '..\source\BooruScraper.Client.Rule34us.pas',
+  BooruScraper.Parser.rule34PahealNet in '..\source\BooruScraper.Parser.rule34PahealNet.pas',
+  BooruScraper.Client.rule34PahealNet in '..\source\BooruScraper.Client.rule34PahealNet.pas';
 
 var
   Client: IBooruClient;
@@ -195,12 +197,12 @@ var
   LAllContentSwitch: IEnableAllContent;
 begin
   try
-    Client := BooruScraper.NewClientGelbooru;
+    Client := BooruScraper.NewClientRule34PahealNet;
     SetWebClient(TBooruClientBase(Client).Client);
     if Supports(Client, IEnableAllContent, LAllContentSwitch) then
       LAllContentSwitch.EnableAllContent := True;
-    TestClient(Client, 'shota');
-//    TestParser(LClient.BooruParser, 'rule34us');
+    TestClient(Client, 'valorant');
+//    TestParser(Client.BooruParser, 'rule34pahealnet');
 
     Readln;
   except

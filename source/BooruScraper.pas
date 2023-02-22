@@ -8,10 +8,12 @@ uses
   BooruScraper.BaseTypes,
   BooruScraper.Client.CompatibleGelbooru,
   BooruScraper.Client.Rule34us,
+  BooruScraper.Client.rule34PahealNet,
   BooruScraper.Parser.rule34xxx,
   BooruScraper.Parser.gelbooru,
   BooruScraper.Parser.Realbooru,
-  BooruScraper.Parser.Rule34us;
+  BooruScraper.Parser.Rule34us,
+  BooruScraper.Parser.rule34PahealNet;
 
   function NewClient(AClientClass: TBooruClientBaseClass; AParser: TBooruParserClass; AHost: string): IBooruClient;
 
@@ -23,6 +25,8 @@ uses
   function NewClientRealbooru: IBooruClient;
   /// <summary>Client for <a href="https://rule34.us">rule34.us</a></summary>
   function NewClientRule34us: IBooruClient;
+  /// <summary>Client for <a href="https://rule34.paheal.net">rule34.paheal.net</a></summary>
+  function NewClientRule34PahealNet: IBooruClient;
 
 
 implementation
@@ -50,6 +54,11 @@ end;
 function NewClientRule34us: IBooruClient;
 begin
   Result := NewClient(TRule34usClient, TRule34usParser, RULE34US_URL);
+end;
+
+function NewClientRule34PahealNet: IBooruClient;
+begin
+  Result := NewClient(TRule34PahealNetClient, TRule34pahealnetParser, RULE34PAHEALNET_URL)
 end;
 
 end.
