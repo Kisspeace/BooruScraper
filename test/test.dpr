@@ -197,11 +197,12 @@ var
   LAllContentSwitch: IEnableAllContent;
 begin
   try
-    Client := BooruScraper.NewClientRule34PahealNet;
+    Client := BooruScraper.NewClientRule34xxx;
     SetWebClient(TBooruClientBase(Client).Client);
+    Client.Host := 'https://xbooru.com';
     if Supports(Client, IEnableAllContent, LAllContentSwitch) then
       LAllContentSwitch.EnableAllContent := True;
-    TestClient(Client, 'valorant');
+    TestClient(Client, '');
 //    TestParser(Client.BooruParser, 'rule34pahealnet');
 
     Readln;

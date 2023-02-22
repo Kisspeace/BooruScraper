@@ -27,36 +27,36 @@ var
 begin
   Result := [];
   LDoc := ParserHtml(ASource);
-  LImgList := FindXByClass(LDoc, 'image-list');
-  if Assigned(LImgList) then begin
-    LImages := FindAllByClass(LDoc, 'thumb');
+//  LImgList := FindXByClass(LDoc, 'image-list');
+//  if Assigned(LImgList) then begin
+  LImages := FindAllByClass(LDoc, 'thumb');
 
-    for I := 0 to LImages.Count - 1 do begin
-      var LThumb: IHtmlElement := LImages.Items[I];
-      var LRes: IBooruThumb := TBooruThumbBase.Create;
+  for I := 0 to LImages.Count - 1 do begin
+    var LThumb: IHtmlElement := LImages.Items[I];
+    var LRes: IBooruThumb := TBooruThumbBase.Create;
 
-      { Id }
-      var LTmp: string := LThumb.Attributes['id'];
-      LTmp := Copy(LTmp, Low(LTmp) + 1, Length(LTmp)); { like s7193632 }
-      LRes.Id := StrToInt64(LTmp);
+    { Id }
+    var LTmp: string := LThumb.Attributes['id'];
+    LTmp := Copy(LTmp, Low(LTmp) + 1, Length(LTmp)); { like s7193632 }
+    LRes.Id := StrToInt64(LTmp);
 
-      { Thumbnail }
-      var LPrev := FindXByClass(LThumb, 'preview');
-      if Assigned(LPrev) then begin
+    { Thumbnail }
+    var LPrev := FindXByClass(LThumb, 'preview');
+    if Assigned(LPrev) then begin
 
-        { Thumbnail URL }
-        LRes.Thumbnail := LPrev.Attributes['src'];
+      { Thumbnail URL }
+      LRes.Thumbnail := LPrev.Attributes['src'];
 
-        { Tags }
-        LTmp := Trim(LPrev.Attributes['title']);
-        LRes.TagsValues := NormalizeTags(LTmp.Split([' '], TStringSplitOptions.ExcludeEmpty));
+      { Tags }
+      LTmp := Trim(LPrev.Attributes['title']);
+      LRes.TagsValues := NormalizeTags(LTmp.Split([' '], TStringSplitOptions.ExcludeEmpty));
 
-      end;
-
-      Result := Result + [LRes];
     end;
 
+    Result := Result + [LRes];
   end;
+
+//  end;
 end;
 
 class function TRule34xxxParser.ParseCommentsFromPostPage(const ASource: string): TBooruCommentAr;
@@ -129,7 +129,10 @@ begin
 
       { Tag value (name) }
       LTmps := LTag.FindX('//a');
-      LNewTag.Value := NormalizeTag(LTmps.Items[1].InnerHtml);
+      if (LTmps.Count > 1) then
+        LNewTag.Value := NormalizeTag(LTmps.Items[1].InnerHtml)
+      else if (LTmps.Count > 0) then
+        LNewTag.Value := NormalizeTag(LTmps.Items[0].InnerHtml);
 
       { Tag count }
       var TagCount := FindXByClass(LTag, 'tag-count');
@@ -170,7 +173,7 @@ begin
 
   end;
 
-  var LLinks := FindXByClass(LDoc, 'link-list');
+  var LLinks := FindXByClass(LDoc, 'sidebar');
   if Assigned(LLinks) then begin
 
     { ContentUrl }
