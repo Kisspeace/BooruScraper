@@ -25,8 +25,7 @@ uses
   BooruScraper.Parser.rule34us in '..\source\BooruScraper.Parser.rule34us.pas',
   BooruScraper.Client.Rule34us in '..\source\BooruScraper.Client.Rule34us.pas',
   BooruScraper.Parser.rule34PahealNet in '..\source\BooruScraper.Parser.rule34PahealNet.pas',
-  BooruScraper.Client.rule34PahealNet in '..\source\BooruScraper.Client.rule34PahealNet.pas',
-  BooruScraper.Parser.danbooruDonmaiUs in '..\source\BooruScraper.Parser.danbooruDonmaiUs.pas';
+  BooruScraper.Client.rule34PahealNet in '..\source\BooruScraper.Client.rule34PahealNet.pas';
 
 var
   Client: IBooruClient;
@@ -168,7 +167,7 @@ var
   LThumbs: TBooruThumbAr;
   LPost: IBooruPost;
 begin
-  LThumbs := AClient.GetPosts(ARequest, 0);
+  LThumbs := AClient.GetPosts(ARequest, 4);
   PrintThumbs(LThumbs);
 
   if ATestClone and (Length(LThumbs) > 0) then
@@ -224,7 +223,7 @@ var
   LAllContentSwitch: IEnableAllContent;
 begin
   try
-    Client := BooruScraper.NewClientRule34PahealNet;
+    Client := BooruScraper.NewClientXbooru;
     SetWebClient(TBooruClientBase(Client).Client);
 //    Client.Host := 'https://xbooru.com';
     if Supports(Client, IEnableAllContent, LAllContentSwitch) then

@@ -85,6 +85,10 @@ var
   LUrl: TURI;
 begin
   LUrl := TURI.Create(Self.Host + '/index.php?page=post&s=list');
+
+  if ARequest.IsEmpty then
+    ARequest := 'all';
+
   LUrl.AddParameter('tags', ARequest);
   LUrl.AddParameter('pid', PageNumToPid(APage).ToString);
   LContent := Client.Get(LUrl.ToString).ContentAsString;
