@@ -13,6 +13,8 @@ const
   RULE34XXX_URL = 'https://rule34.xxx';
   /// <summary>Base url for realbooru.com.</summary>
   REALBOORU_URL = 'https://realbooru.com';
+  /// <summary>Base url for xbooru.com.</summary>
+  XBOORU_URL = 'https://xbooru.com';
 
   /// <summary>Max thumbnails count given by one request.</summary>
   POSTS_PER_PAGE = 42;
