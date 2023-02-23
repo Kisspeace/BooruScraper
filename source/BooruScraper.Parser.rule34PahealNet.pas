@@ -114,7 +114,7 @@ begin
         { Tag name }
         LTmp2 := FindXByClass(LTmp, 'tag_name');
         if Assigned(LTmp2) then
-          LNewTag.Value := Trim(LTmp2.Text);
+          LNewTag.Value := NormalizeTag(LTmp2.Text);
 
         { Tag counter }
         LTmp2 := FindXByClass(LTmp, 'tag_count');
@@ -132,8 +132,20 @@ begin
 
   { Content Url }
   LTmp := FindXById(LDoc, 'main_image');
-  if Assigned(LTmp) then
-    Result.ContentUrl := LTmp.Attributes['src'];
+  if Assigned(LTmp) then begin
+
+    if (LTmp.TagName = 'VIDEO') then begin
+      { Is video }
+      Result.Thumbnail := LTmp.Attributes['poster'];
+
+      LTmp2 := FindXFirst(LTmp, '//source');
+      if Assigned(LTmp2) then
+        Result.ContentUrl := LTmp2.Attributes['src'];
+
+    end else
+      Result.ContentUrl := LTmp.Attributes['src'];
+
+  end;
 
   var LInfo := FindXByClass(LDoc, 'image_info');
   if Assigned(LInfo) then begin
