@@ -25,7 +25,8 @@ uses
   BooruScraper.Parser.rule34us in '..\source\BooruScraper.Parser.rule34us.pas',
   BooruScraper.Client.Rule34us in '..\source\BooruScraper.Client.Rule34us.pas',
   BooruScraper.Parser.rule34PahealNet in '..\source\BooruScraper.Parser.rule34PahealNet.pas',
-  BooruScraper.Client.rule34PahealNet in '..\source\BooruScraper.Client.rule34PahealNet.pas';
+  BooruScraper.Client.rule34PahealNet in '..\source\BooruScraper.Client.rule34PahealNet.pas',
+  BooruScraper.Parser.danbooruDonmaiUs in '..\source\BooruScraper.Parser.danbooruDonmaiUs.pas';
 
 var
   Client: IBooruClient;
@@ -144,18 +145,44 @@ begin
   PrintPost(LPost);
 end;
 
-procedure TestClient(AClient: IBooruClient; ARequest: string = '');
+procedure TestClone(AObject: IAssignAndClone);
+var
+  LCopy: IAssignAndClone;
+  LOJson: ISuperObject;
+  LCJson: ISuperObject;
+begin
+  LOJson := TJsonMom.ToJsonAuto(AObject);
+  Writeln('ORIGINAL ----------------------');
+  Writeln(LOJson.AsJSON(True));
+  Writeln('END ---------------------------');
+
+  LCopy := AObject.Clone;
+  LCJson := TJsonMom.ToJsonAuto(LCopy);
+  Writeln('COPY --------------------------');
+  Writeln(LCJson.AsJSON(True));
+  Writeln('END ---------------------------');
+end;
+
+procedure TestClient(AClient: IBooruClient; ARequest: string = ''; ATestClone: boolean = True);
 var
   LThumbs: TBooruThumbAr;
   LPost: IBooruPost;
 begin
   LThumbs := AClient.GetPosts(ARequest, 0);
   PrintThumbs(LThumbs);
+
+  if ATestClone and (Length(LThumbs) > 0) then
+    TestClone(LThumbs[0]);
+
   writeln('');
 
   if Length(LThumbs) > 0 then begin
     LPost := AClient.GetPost(LThumbs[0]);
     PrintPost(LPost);
+
+    if ATestClone then
+      TestClone(LPost);
+
     writeln('');
   end;
 
@@ -197,12 +224,12 @@ var
   LAllContentSwitch: IEnableAllContent;
 begin
   try
-    Client := BooruScraper.NewClientRule34xxx;
+    Client := BooruScraper.NewClientRule34PahealNet;
     SetWebClient(TBooruClientBase(Client).Client);
-    Client.Host := 'https://xbooru.com';
+//    Client.Host := 'https://xbooru.com';
     if Supports(Client, IEnableAllContent, LAllContentSwitch) then
       LAllContentSwitch.EnableAllContent := True;
-    TestClient(Client, '');
+    TestClient(Client, '', True);
 //    TestParser(Client.BooruParser, 'rule34pahealnet');
 
     Readln;

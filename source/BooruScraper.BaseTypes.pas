@@ -8,9 +8,9 @@ uses
 type
 
   TBooruThumbBase = Class(TInterfacedObject, IBooruThumb, IAssignAndClone)
-    private
-      procedure DoAssign(const ASource: IAssignAndClone);
-      function GetClone: IAssignAndClone;
+    public { IAssignAndClone }
+      procedure Assign(const ASource: IAssignAndClone);
+      function Clone: IAssignAndClone;
     protected
       FId: TBooruId;
       FThumbnail: string;
@@ -23,9 +23,6 @@ type
       procedure SetTagsValues(const value: TArray<string>);
       function GetTagsValues: TArray<string>;
     public
-      procedure Assign(const Asource: IBooruThumb); virtual;
-      function Clone: IBooruThumb; virtual;
-      { --------------------- }
       property Id: TBooruId read GetId write SetId;
       property Thumbnail: string read GetThumbnail write SetThumbnail;
       property TagsValues: TArray<string> read GetTagsValues write SetTagsValues;
@@ -34,9 +31,9 @@ type
   End;
 
   TBooruTagBase = Class(TInterfacedObject, IBooruTag, IAssignAndClone)
-    private
-      procedure DoAssign(const ASource: IAssignAndClone);
-      function GetClone: IAssignAndClone;
+    public { IAssignAndClone }
+      procedure Assign(const ASource: IAssignAndClone);
+      function Clone: IAssignAndClone;
     protected
       FValue: string;
       FKind: TBooruTagType;
@@ -49,9 +46,6 @@ type
       procedure SetCount(const value: cardinal);
       function GetCount: cardinal;
     public
-      procedure Assign(const Asource: IBooruTag); virtual;
-      function Clone: IBooruTag; virtual;
-      { --------------------- }
       property Value: string read GetValue write SetValue;
       property Kind: TBooruTagType read GetKind write SetKind;
       property Count: Cardinal read GetCount write SetCount;
@@ -60,9 +54,9 @@ type
   End;
 
   TBooruCommentBase = Class(TInterfacedObject, IBooruComment, IAssignAndClone)
-    private
-      procedure DoAssign(const ASource: IAssignAndClone);
-      function GetClone: IAssignAndClone;
+    public { IAssignAndClone }
+      procedure Assign(const ASource: IAssignAndClone);
+      function Clone: IAssignAndClone;
     protected
       FId: TBooruId;
       FUsername: string;
@@ -84,9 +78,6 @@ type
       procedure SetScore(const value: TBooruScore);
       function GetScore: TBooruScore;
     public
-      procedure Assign(const Asource: IBooruComment);
-      function Clone: IBooruComment;
-      { --------------------- }
       property Id: TBooruId read GetId write SetId;
       property Username: string read GetUsername write SetUsername;
 //      property UserUrl: string read GetUserUrl write SetUserUrl;
@@ -97,10 +88,10 @@ type
       constructor Create;
   End;
 
-  TBooruPostBase = Class(TInterfacedObject, IBooruPost, IAssignAndClone)
-    private
-      procedure DoAssign(const ASource: IAssignAndClone);
-      function GetClone: IAssignAndClone;
+  TBooruPostBase = Class(TInterfacedObject, IBooruPost, IBooruThumb, IAssignAndClone)
+    public { IAssignAndClone }
+      procedure Assign(const ASource: IAssignAndClone);
+      function Clone: IAssignAndClone;
     protected
       FId: TBooruId;
       FThumbnail: string;
@@ -114,6 +105,7 @@ type
       function GetId: TBooruId;
       procedure SetThumbnail(const value: string);
       function GetThumbnail: string;
+      procedure SetTagsValues(const value: TArray<string>);
       function GetTagsValues: TArray<string>;
       procedure SetContentUrl(const value: string);
       function GetContentUrl: string;
@@ -126,8 +118,6 @@ type
       procedure SetComments(const value: TBooruCommentList); // FIXME
       function GetComments: TBooruCommentList;
     public
-      procedure Assign(const Asource: IBooruPost);
-      function Clone: IBooruPost;
       function HasTag(AValue: string): boolean;
       function GetTagsByType(ATagType: TBooruTagType): TBooruTagAr;
       { --------------------- }
@@ -148,14 +138,18 @@ implementation
 
 { TBooruThumbBase }
 
-procedure TBooruThumbBase.Assign(const Asource: IBooruThumb);
+procedure TBooruThumbBase.Assign(const Asource: IAssignAndClone);
+var
+  LThumb: IBooruThumb;
 begin
-  Self.Id := ASource.Id;
-  Self.Thumbnail := ASource.Thumbnail;
-  Self.TagsValues := ASource.TagsValues;
+  if Supports(ASource, IBooruThumb, LThumb) then begin
+    Self.Id := LThumb.Id;
+    Self.Thumbnail := LThumb.Thumbnail;
+    Self.TagsValues := LThumb.TagsValues;
+  end;
 end;
 
-function TBooruThumbBase.Clone: IBooruThumb;
+function TBooruThumbBase.Clone: IAssignAndClone;
 begin
   Result := TBooruThumbBase.Create;
   Result.Assign(Self);
@@ -166,21 +160,6 @@ begin
   FId := -1;
   FThumbnail := '';
   FTagsValues := Nil;
-end;
-
-procedure TBooruThumbBase.DoAssign(const ASource: IAssignAndClone);
-//var
-//  LSource: IBooruThumb;
-begin
-//  if Supports(ASource, IBooruThumb, LSource) then
-//    exit;
-//    Self.Assign(LSource.Clone);
-  Self.Assign(ASource as IBooruThumb);
-end;
-
-function TBooruThumbBase.GetClone: IAssignAndClone;
-begin
-  Result := Self.Clone;
 end;
 
 function TBooruThumbBase.GetId: TBooruId;
@@ -220,14 +199,18 @@ end;
 
 { TBooruTagBase }
 
-procedure TBooruTagBase.Assign(const Asource: IBooruTag);
+procedure TBooruTagBase.Assign(const Asource: IAssignAndClone);
+var
+  LTag: IBooruTag;
 begin
-  Self.Value := ASource.Value;
-  Self.Kind := ASource.Kind;
-  Self.Count := ASource.Count;
+  if Supports(ASource, IBooruTag, LTag) then begin
+    Self.Value := LTag.Value;
+    Self.Kind := LTag.Kind;
+    Self.Count := LTag.Count;
+  end;
 end;
 
-function TBooruTagBase.Clone: IBooruTag;
+function TBooruTagBase.Clone: IAssignAndClone;
 begin
   Result := TBooruTagBase.Create;
   Result.Assign(Self);
@@ -238,16 +221,6 @@ begin
   FValue := '';
   FKind := TBooruTagType.TagGeneral;
   FCount := 0;
-end;
-
-procedure TBooruTagBase.DoAssign(const ASource: IAssignAndClone);
-begin
-  Self.Assign(ASource as IBooruTag);
-end;
-
-function TBooruTagBase.GetClone: IAssignAndClone;
-begin
-  Result := Self.Clone;
 end;
 
 function TBooruTagBase.GetCount: cardinal;
@@ -282,16 +255,20 @@ end;
 
 { TBooruCommentBase }
 
-procedure TBooruCommentBase.Assign(const Asource: IBooruComment);
+procedure TBooruCommentBase.Assign(const Asource: IAssignAndClone);
+var
+  LComment: IBooruComment;
 begin
-  Self.Id := ASource.Id;
-  Self.Username := ASource.Username;
-//  Self.UserUrl := ASource.UserUrl;
-  Self.Timestamp := ASource.Timestamp;
-  Self.Text := ASource.Text;
+  if Supports(ASource, IBooruComment, LComment) then begin
+    Self.Id := LComment.Id;
+    Self.Username := LComment.Username;
+  //  Self.UserUrl := ASource.UserUrl;
+    Self.Timestamp := LComment.Timestamp;
+    Self.Text := LComment.Text;
+  end;
 end;
 
-function TBooruCommentBase.Clone: IBooruComment;
+function TBooruCommentBase.Clone: IAssignAndClone;
 begin
   Result := TBooruCommentBase.Create;
   Result.Assign(Self);
@@ -305,16 +282,6 @@ begin
   FText := '';
   FScore := 0;
   FTimestamp := -1;
-end;
-
-procedure TBooruCommentBase.DoAssign(const ASource: IAssignAndClone);
-begin
-  Self.Assign(ASource as IBooruComment);
-end;
-
-function TBooruCommentBase.GetClone: IAssignAndClone;
-begin
-  Result := Self.Clone;
 end;
 
 function TBooruCommentBase.GetId: TBooruId;
@@ -379,18 +346,26 @@ end;
 
 { TBooruPostBase }
 
-procedure TBooruPostBase.Assign(const Asource: IBooruPost);
+procedure TBooruPostBase.Assign(const Asource: IAssignAndClone);
+var
+  LPost: IBooruPost;
+  LThumb: IBooruThumb;
 begin
-  Self.Id := ASource.Id;
-  Self.Thumbnail := ASource.Thumbnail;
-  Self.ContentUrl := ASource.ContentUrl;
-  Self.Score := ASource.Score;
-  Self.Uploader := ASource.Uploader;
-  Self.Tags := ASource.Tags;
-  Self.Comments := ASource.Comments;
+  if Supports(ASource, IBooruPost, LPost) then begin
+    Self.Id := LPost.Id;
+    Self.Thumbnail := LPost.Thumbnail;
+    Self.ContentUrl := LPost.ContentUrl;
+    Self.Score := LPost.Score;
+    Self.Uploader := LPost.Uploader;
+    Self.Tags := LPost.Tags;
+    Self.Comments := LPost.Comments;
+  end else if Supports(ASource, IBooruThumb, LThumb) then begin
+    Self.Id := LThumb.Id;
+    Self.Thumbnail := LThumb.Thumbnail;
+  end;
 end;
 
-function TBooruPostBase.Clone: IBooruPost;
+function TBooruPostBase.Clone: IAssignAndClone;
 begin
   Result := TBooruPostBase.Create;
   Result.Assign(Self);
@@ -413,16 +388,6 @@ begin
   FreeAndNil(FComments);
 //  writeln('TBooruPostBase.Destroy');
   inherited;
-end;
-
-procedure TBooruPostBase.DoAssign(const ASource: IAssignAndClone);
-begin
-  Self.Assign(ASource as IBooruPost);
-end;
-
-function TBooruPostBase.GetClone: IAssignAndClone;
-begin
-  Result := Self.Clone;
 end;
 
 function TBooruPostBase.GetComments: TBooruCommentList;
@@ -518,6 +483,11 @@ procedure TBooruPostBase.SetTags(const value: TBooruTagList);
 begin
   FTags.Clear;
   FTags.AddRange(TCloneMachine.CloneAr<IBooruTag>(value.ToArray));
+end;
+
+procedure TBooruPostBase.SetTagsValues(const value: TArray<string>);
+begin
+  { There is nothing to do. }
 end;
 
 procedure TBooruPostBase.SetThumbnail(const value: string);

@@ -26,9 +26,9 @@ type
 
   IAssignAndClone = Interface
     ['{3846D50D-A6DE-450D-A463-A6A54D898250}']
-    { private / protected }
-    procedure DoAssign(const ASource: IAssignAndClone);
-    function GetClone: IAssignAndClone;
+    { public }
+    procedure Assign(const ASource: IAssignAndClone);
+    function Clone: IAssignAndClone;
   End;
 
   TAssignAndCloneAr = TArray<IAssignAndClone>;
@@ -42,9 +42,6 @@ type
     function GetThumbnail: string;
     procedure SetTagsValues(const value: TArray<string>);
     function GetTagsValues: TArray<string>;
-    { public }
-    procedure Assign(const ASource: IBooruThumb);
-    function Clone: IBooruThumb;
     { public properties }
     property Id: TBooruId read GetId write SetId;
     /// <summary>Link on thumbnail image.</summary>
@@ -65,8 +62,8 @@ type
     procedure SetCount(const value: cardinal);
     function GetCount: cardinal;
     { public }
-    procedure Assign(const Asource: IBooruTag);
-    function Clone: IBooruTag;
+    procedure Assign(const Asource: IAssignAndClone);
+    function Clone: IAssignAndClone;
     { public properties }
     /// <summary>Tag name that can be used for search.</summary>
     property Value: string read GetValue write SetValue;
@@ -94,8 +91,8 @@ type
     procedure SetScore(const value: TBooruScore);
     function GetScore: TBooruScore;
     { public }
-    procedure Assign(const Asource: IBooruComment);
-    function Clone: IBooruComment;
+    procedure Assign(const Asource: IAssignAndClone);
+    function Clone: IAssignAndClone;
     { public properties }
     property Id: TBooruId read GetId write SetId;
     property Username: string read GetUsername write SetUsername;
@@ -108,7 +105,7 @@ type
   TBooruCommentAr = TArray<IBooruComment>;
   TBooruCommentList = TList<IBooruComment>;
 
-  IBooruPost = Interface(IAssignAndClone)
+  IBooruPost = Interface(IBooruThumb)
     ['{F1F1BED9-9A91-49C2-A58B-CE4194945D57}']
     { private }
     procedure SetId(const value: TBooruId);
@@ -127,8 +124,8 @@ type
     procedure SetComments(const value: TBooruCommentList);
     function GetComments: TBooruCommentList;
     { public }
-    procedure Assign(const Asource: IBooruPost);
-    function Clone: IBooruPost;
+    procedure Assign(const Asource: IAssignAndClone);
+    function Clone: IAssignAndClone;
     function HasTag(AValue: string): boolean;
     function GetTagsByType(ATagType: TBooruTagType): TBooruTagAr;
     { public properties }
@@ -217,7 +214,7 @@ begin
   SetLength(Result, Length(ASource));
   for I := 0 to High(ASource) do begin
     if Supports(ASource[I], IAssignAndClone, LRes) then begin
-      Result[I] := T(LRes.GetClone);
+      Result[I] := T(LRes.Clone);
     end;
   end;
 end;

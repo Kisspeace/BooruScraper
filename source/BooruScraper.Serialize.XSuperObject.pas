@@ -8,6 +8,7 @@ uses
 type
   TJsonMom = Class
     public
+      class function ToJsonAuto(const AVal: IAssignAndClone): ISuperObject; overload;
       class function ToJson(const AVal: IBooruThumb): ISuperObject; overload;
       class function ToJson(const AVal: IBooruTag): ISuperObject; overload;
       class function ToJson(const AVal: IBooruComment): ISuperObject; overload;
@@ -164,6 +165,23 @@ begin
   Result := SA();
   for I := 0 to High(AVal) do
     Result.Add(Self.ToJson(AVal[I]));
+end;
+
+class function TJsonMom.ToJsonAuto(const AVal: IAssignAndClone): ISuperObject;
+var
+  LPost: IBooruPost;
+  LThumb: IBooruThumb;
+  LTag: IBooruTag;
+  LComment: IBooruComment;
+begin
+  if Supports(AVal, IBooruPost, LPost) then
+    Result := Self.ToJson(LPost)
+  else if Supports(AVal, IBooruThumb, LThumb) then
+    Result := Self.ToJson(LThumb)
+  else if Supports(AVal, IBooruTag, LTag) then
+    Result := Self.ToJson(LTag)
+  else if Supports(AVal, IBooruComment, LComment) then
+    Result := Self.ToJson(LComment);
 end;
 
 class function TJsonMom.ToJson(AVal: TBooruCommentAr): ISuperArray;
