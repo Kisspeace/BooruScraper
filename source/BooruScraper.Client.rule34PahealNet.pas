@@ -7,7 +7,7 @@ uses
   BooruScraper.Interfaces, BooruScraper.ClientBase;
 
 const
-  /// <summary>Base url for rule34.xxx.</summary>
+  /// <summary>Base url for rule34.paheal.net.</summary>
   RULE34PAHEALNET_URL = 'https://rule34.paheal.net';
 
 type
@@ -58,7 +58,12 @@ var
   LUrl: string;
 begin
   APage := APage + 1; { First page is 1 }
-  LUrl := Self.Host + '/post/list/' + ARequest + '/' + APage.ToString;
+  LUrl := Self.Host + '/post/list/';
+
+  if not ARequest.IsEmpty then
+    LUrl := LUrl + ARequest + '/';
+
+  LUrl := LUrl + APage.ToString;
 
   LContent := Client.Get(LUrl).ContentAsString;
   Result := BooruParser.ParsePostsFromPage(LContent);
