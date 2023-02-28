@@ -31,6 +31,8 @@ uses
   function NewClientXbooru: IBooruClient;
   /// <summary>Client for <a href="https://hypnohub.net">hypnohub.net</a></summary>
   function NewClientHypnohubnet: IBooruClient;
+  /// <summary>Client for <a href="https://tbib.org">tbib.org</a></summary>
+  function NewClientTbib: IBooruClient;
 
 implementation
 
@@ -72,6 +74,11 @@ end;
 function NewClientHypnohubnet: IBooruClient;
 begin
   Result := NewClient(TGelbooruLikeClient, TRule34xxxparser, HYPNOHUBNET_URL);
+end;
+
+function NewClientTbib: IBooruClient;
+begin
+  Result := NewClient(TGelbooruLikeClient, TRule34xxxparser, TBIBORG_URL);
 end;
 
 end.

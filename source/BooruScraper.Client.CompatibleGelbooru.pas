@@ -17,6 +17,8 @@ const
   XBOORU_URL = 'https://xbooru.com';
   /// <summary>Base url for hypnohub.net</summary>
   HYPNOHUBNET_URL = 'https://hypnohub.net';
+  /// <summary>Base url for tbib.org</summary>
+  TBIBORG_URL = 'https://tbib.org';
 
   /// <summary>Max thumbnails count given by one request.</summary>
   POSTS_PER_PAGE = 42;
