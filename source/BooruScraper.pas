@@ -29,8 +29,8 @@ uses
   function NewClientRule34PahealNet: IBooruClient;
   /// <summary>Client for <a href="https://xbooru.com">xbooru.com</a></summary>
   function NewClientXbooru: IBooruClient;
-
-
+  /// <summary>Client for <a href="https://hypnohub.net">hypnohub.net</a></summary>
+  function NewClientHypnohubnet: IBooruClient;
 
 implementation
 
@@ -67,6 +67,11 @@ end;
 function NewClientXbooru: IBooruClient;
 begin
   Result := NewClient(TGelbooruLikeClient, TRule34xxxparser, XBOORU_URL);
+end;
+
+function NewClientHypnohubnet: IBooruClient;
+begin
+  Result := NewClient(TGelbooruLikeClient, TRule34xxxparser, HYPNOHUBNET_URL);
 end;
 
 end.
