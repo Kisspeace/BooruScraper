@@ -89,13 +89,17 @@ begin
     var LCol2 := FindXByClass(LComments[I], 'col2');
 
     { Comment Author username }
-    LNewComment.Username := Trim(LCol1.FindX('//a').Text);
-    LNewComment.Text := Trim(THTMLEncoding.HTML.Decode(LCol2.Text));
+    if Assigned(LCol2) then begin
+      LNewComment.Username := Trim(LCol1.FindX('//a').Text);
+      LNewComment.Text := Trim(THTMLEncoding.HTML.Decode(LCol2.Text));
+    end;
 
     { Comment Timestamp }
     try
-      LStr := Trim(GetBetween(LCol1.Text, 'Posted on', 'Score'));
-      LNewComment.Timestamp := StrToDatetime(LStr, BOORU_TIME_FORMAT);
+      if Assigned(LCol1) then begin
+        LStr := Trim(GetBetween(LCol1.Text, 'Posted on', 'Score'));
+        LNewComment.Timestamp := StrToDatetime(LStr, BOORU_TIME_FORMAT);
+      end;
     except
 
     end;
