@@ -45,7 +45,7 @@ begin
     if Assigned(LPrev) then begin
 
       { Thumbnail URL }
-      LRes.Thumbnail := LPrev.Attributes['src'];
+      LRes.Thumbnail := NormalizeUrl(LPrev.Attributes['src']);
 
       { Tags }
       LTmp := Trim(LPrev.Attributes['title']);
@@ -144,7 +144,7 @@ begin
     { Image thumbnail (sapmple) }
     var LImage := FindXById(LDoc, 'image');
     if Assigned(LImage) then
-      Result.Thumbnail := LImage.Attributes['src'];
+      Result.Thumbnail := NormalizeUrl(LImage.Attributes['src']);
 
   end;
 
@@ -178,7 +178,7 @@ begin
 
     { ContentUrl }
     LTmp := FindByText(LLinks, 'Original image', True, True);
-    Result.ContentUrl := LTmp.Attributes['href'];
+    Result.ContentUrl := NormalizeUrl(LTmp.Attributes['href']);
 
   end;
 

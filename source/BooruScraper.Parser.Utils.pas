@@ -19,6 +19,8 @@ uses
   function NormalizeTag(ATag: string): string;
   function NormalizeTags(ATags: TArray<String>): TArray<String>;
 
+  function NormalizeUrl(AUrlStr: string): string;
+
 const
 
   BOORU_TIME_FORMAT: TFormatSettings = (
@@ -153,6 +155,15 @@ begin
     if (LPosR <> -1) then
       Result := ASource.Substring(LPosL, (LLen - LPosL) - (LLen - LPosR));
   end;
+end;
+
+function NormalizeUrl(AUrlStr: string): string;
+begin
+  { for tbib.org }
+  if AUrlStr.StartsWith('//') then
+    Result := AUrlStr.Remove(0, 2)
+  else
+    Result := AUrlStr;
 end;
 
 end.
