@@ -3,7 +3,7 @@
 interface
 uses
   Classes, Types, SysUtils, System.Generics.Collections,
-  HtmlParserEx, BooruScraper.Interfaces;
+  HtmlParserEx, BooruScraper.Interfaces, system.Net.URLClient;
 
   function FindXFirst(AElement: IHtmlElement; const AXPath: WideString): IHtmlElement;
   function FindXByClass(AElement: IHtmlElement; AClass: string): IHtmlElement;
@@ -159,9 +159,11 @@ end;
 
 function NormalizeUrl(AUrlStr: string): string;
 begin
+  Result := AUrlStr;
+
   { for tbib.org }
-  if AUrlStr.StartsWith('//') then
-    Result := AUrlStr.Remove(0, 2)
+  if Result.StartsWith('//') then
+    Result := TURI.SCHEME_HTTPS + ':' + Result
   else
     Result := AUrlStr;
 end;
