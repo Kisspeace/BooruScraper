@@ -178,6 +178,16 @@ begin
   Writeln('END ---------------------------');
 end;
 
+procedure GetComments(AClient: IBooruClient; AId: TBooruId);
+var
+  LComments: TBooruCommentAr;
+begin
+  writeln('GET COMMENTS ' + AClient.Host + ': ' + AId.ToString + ';');
+  LComments := AClient.GetPostComments(AId);
+  PrintComments(LComments);
+  Writeln('END ---------------------------');
+end;
+
 procedure TestClient(AClient: IBooruClient; ARequest: string = ''; ATestClone: boolean = True);
 var
   LThumbs: TBooruThumbAr;
@@ -240,17 +250,16 @@ var
 begin
   try
     { https://lolibooru.moe/help/api }
-
-    Client := BooruScraper.NewClientBleachbooru();
+    Client := BooruScraper.NewClientAllTheFallen(True);
 //    Client.Host := '';
-    SetWebClient(TBooruClientBase(Client).Client);
+
+    if (Client.Host <> DANBOORUDONMAIUS_URL) then
+      SetWebClient(TBooruClientBase(Client).Client);
 
     if Supports(Client, IEnableAllContent, LAllContentSwitch) then
       LAllContentSwitch.EnableAllContent := True;
 
     TestClient(Client, '', True);
-
-
 //    TestParser(Client.BooruParser, 'rule34pahealnet');
 
     Readln;

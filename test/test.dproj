@@ -162,6 +162,8 @@
         <DCCReference Include="..\source\BooruScraper.Client.API.TbibOrg.pas"/>
         <DCCReference Include="..\source\BooruScraper.Urls.pas"/>
         <DCCReference Include="..\source\BooruScraper.Parser.API.TbibOrg.pas"/>
+        <DCCReference Include="..\source\BooruScraper.Client.API.danbooru.pas"/>
+        <DCCReference Include="..\source\BooruScraper.Parser.API.danbooru.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
@@ -1013,8 +1015,8 @@
                 <ProjectRoot Platform="OSX32" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="OSX64" Name="$(PROJECTNAME).app"/>
                 <ProjectRoot Platform="Android64" Name="$(PROJECTNAME)"/>
-                <ProjectRoot Platform="Win32" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="OSXARM64" Name="$(PROJECTNAME).app"/>
+                <ProjectRoot Platform="Win32" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="Android" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="Win64" Name="$(PROJECTNAME)"/>
                 <ProjectRoot Platform="Linux64" Name="$(PROJECTNAME)"/>

@@ -38,10 +38,14 @@ uses
   function NewClientHypnohubnet: IBooruClient;
   /// <summary>Client for <a href="https://tbib.org">tbib.org</a></summary>
   function NewClientTbib(APreferAPI: boolean = True): IBooruClient;
-  /// <summary>Client for <a href="https://danbooru.donmai.us">danbooru.donmai.us</a></summary>
+  /// <summary>Client for <a href="https://danbooru.donmai.us">danbooru.donmai.us</a>
+  /// With TNetHttpClient works only without custom headers.
+  /// </summary>
   function NewClientDonmaiUs(APreferAPI: boolean = True): IBooruClient;
   /// <summary>Client for <a href="https://bleachbooru.org">https://bleachbooru.org</a></summary>
   function NewClientBleachbooru(APreferAPI: boolean = True): IBooruClient;
+  /// <summary>Client for <a href="https://booru.allthefallen.moe">https://booru.allthefallen.moe</a></summary>
+  function NewClientAllTheFallen(APreferAPI: boolean = True): IBooruClient;
 
 implementation
 
@@ -101,6 +105,11 @@ end;
 function NewClientBleachbooru(APreferAPI: boolean = True): IBooruClient;
 begin
   Result := NewClient(TDanbooruAPIClient, TDanbooruAPIParser, BLEACHBOORUORG_URL);
+end;
+
+function NewClientAllTheFallen(APreferAPI: boolean = True): IBooruClient;
+begin
+  Result := NewClient(TDanbooruAPIClient, TDanbooruAPIParser, BOORUALLTHEFALLENMOE_URL);
 end;
 
 end.
