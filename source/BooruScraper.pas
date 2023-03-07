@@ -11,12 +11,14 @@ uses
   BooruScraper.Client.Rule34us,
   BooruScraper.Client.rule34PahealNet,
   BooruScraper.Client.API.TbibOrg,
+  BooruScraper.Client.API.danbooru,
   BooruScraper.Parser.rule34xxx,
   BooruScraper.Parser.gelbooru,
   BooruScraper.Parser.Realbooru,
   BooruScraper.Parser.Rule34us,
   BooruScraper.Parser.rule34PahealNet,
-  BooruScraper.Parser.API.TbibOrg;
+  BooruScraper.Parser.API.TbibOrg,
+  BooruScraper.Parser.API.danbooru;
 
   function NewClient(AClientClass: TBooruClientBaseClass; AParser: TBooruParserClass; AHost: string): IBooruClient;
 
@@ -36,6 +38,10 @@ uses
   function NewClientHypnohubnet: IBooruClient;
   /// <summary>Client for <a href="https://tbib.org">tbib.org</a></summary>
   function NewClientTbib(APreferAPI: boolean = True): IBooruClient;
+  /// <summary>Client for <a href="https://danbooru.donmai.us">danbooru.donmai.us</a></summary>
+  function NewClientDonmaiUs(APreferAPI: boolean = True): IBooruClient;
+  /// <summary>Client for <a href="https://bleachbooru.org">https://bleachbooru.org</a></summary>
+  function NewClientBleachbooru(APreferAPI: boolean = True): IBooruClient;
 
 implementation
 
@@ -85,6 +91,16 @@ begin
     Result := NewClient(TTbibAPIClient, TTbibOrgAPIParser, TBIBORG_URL)
   else
     Result := NewClient(TGelbooruLikeClient, TRule34xxxparser, TBIBORG_URL);
+end;
+
+function NewClientDonmaiUs(APreferAPI: boolean = True): IBooruClient;
+begin
+  Result := NewClient(TDanbooruAPIClient, TDanbooruAPIParser, DANBOORUDONMAIUS_URL);
+end;
+
+function NewClientBleachbooru(APreferAPI: boolean = True): IBooruClient;
+begin
+  Result := NewClient(TDanbooruAPIClient, TDanbooruAPIParser, BLEACHBOORUORG_URL);
 end;
 
 end.

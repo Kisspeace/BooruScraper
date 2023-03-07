@@ -19,6 +19,10 @@ const
   RULE34PAHEALNET_URL = 'https://rule34.paheal.net';
   /// <summary>Base url for rule34.xxx.</summary>
   RULE34US_URL = 'https://rule34.us';
+  /// <summary>Base url for https://danbooru.donmai.us.</summary>
+  DANBOORUDONMAIUS_URL = 'https://danbooru.donmai.us';
+  /// <summary>Base url for https://bleachbooru.org/.</summary>
+  BLEACHBOORUORG_URL = 'https://bleachbooru.org';
 
 implementation
 

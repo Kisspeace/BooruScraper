@@ -239,9 +239,11 @@ var
   LAllContentSwitch: IEnableAllContent;
 begin
   try
-    Client := BooruScraper.NewClientGelbooru;
+    { https://lolibooru.moe/help/api }
+
+    Client := BooruScraper.NewClientBleachbooru();
+//    Client.Host := '';
     SetWebClient(TBooruClientBase(Client).Client);
-//    Client.Host := 'https://lolibooru.moe';
 
     if Supports(Client, IEnableAllContent, LAllContentSwitch) then
       LAllContentSwitch.EnableAllContent := True;
