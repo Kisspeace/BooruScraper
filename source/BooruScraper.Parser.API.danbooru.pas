@@ -15,7 +15,9 @@ type
       class function ParsePostFromObject(A: ISuperObject): IBooruPost;
       class function ParseCommentsFromPostPage(const ASource: string): TBooruCommentAr; override;
       class function ParseCommentFromObject(A: ISuperObject): IBooruComment;
-  End;
+      { -------------------- }
+      class function ParseDate(AObj: ISuperObject; AKey: string): TDateTime;
+  end;
 
 implementation
 
@@ -29,7 +31,7 @@ begin
     Id := A.I['id'];
     PostId := A.I['post_id'];
     CreatorId := A.I['creator_id'];
-    Timestamp := A.D['created_at'];
+    Timestamp := ParseDate(A, 'created_at');
     Score := A.I['score'];
     Text := A.S['body'];
     IsDeleted := A.B['is_deleted'];
@@ -46,6 +48,17 @@ begin
   SetLength(Result, LArray.Length);
   for I := 0 to LArray.Length - 1 do
     Result[I] := Self.ParseCommentFromObject(LArray.O[I]);
+end;
+
+class function TDanbooruAPIParser.ParseDate(AObj: ISuperObject;
+  AKey: string): TDateTime;
+var
+  LTmp: string;
+begin
+  if (AObj.Null[AKey] = TMemberStatus.jAssigned) then begin
+    LTmp := AObj.S[AKey];
+    Result := StrToDatetime(LTmp, BOORU_TIME_FORMAT);
+  end else Result := BOORU_NOTSET;
 end;
 
 class function TDanbooruAPIParser.ParsePostFromObject(
@@ -76,32 +89,22 @@ class function TDanbooruAPIParser.ParsePostFromObject(
     end;
   end;
 
-  function ParseDate(AKey: string): TDateTime;
-  var
-    LTmp: string;
-  begin
-    if (A.Null[AKey] = TMemberStatus.jAssigned) then begin
-      LTmp := A.S[AKey];
-      Result := StrToDatetime(LTmp, BOORU_TIME_FORMAT);
-    end else Result := BOORU_NOTSET;
-  end;
-
 begin
   Result := TBooruPostBase.Create;
   with Result do begin
     Id := A.I['id'];
-    CreatedAt := ParseDate('created_at');
+    CreatedAt := ParseDate(A, 'created_at');
     UploaderId := A.I['uploader_id'];
     Score := A.I['score'];
     SourceUrl := A.S['source'];
     Md5 := A.S['md5'];
-    LastCommentBumpedAt := ParseDate('last_comment_bumped_at');
+    LastCommentBumpedAt := ParseDate(A, 'last_comment_bumped_at');
     Rating := A.S['rating'];
     Width := A.I['image_width'];
     Height := A.I['image_height'];
     FavCount := A.I['fav_count'];
     FileExt := A.S['file_ext'];
-    LastNotedAt := ParseDate('last_noted_at');
+    LastNotedAt := ParseDate(A, 'last_noted_at');
 
     if (A.Null['parent_id'] = TMemberStatus.jAssigned) then
       ParentId := A.I['parent_id'];
