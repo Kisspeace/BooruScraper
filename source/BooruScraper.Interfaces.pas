@@ -4,6 +4,10 @@ interface
 uses
   Classes, Types, SysUtils, System.Generics.Collections;
 
+const
+  BOORU_FIRSTPAGE = 0;
+  BOORU_NOTSET = -1;
+
 type
 
   TBooruId = Int64;
@@ -59,8 +63,8 @@ type
     function GetValue: string;
     procedure SetKind(const value: TBooruTagType);
     function GetKind: TBooruTagType;
-    procedure SetCount(const value: cardinal);
-    function GetCount: cardinal;
+    procedure SetCount(const value: int64);
+    function GetCount: int64;
     { public }
     procedure Assign(const Asource: IAssignAndClone);
     function Clone: IAssignAndClone;
@@ -69,7 +73,7 @@ type
     property Value: string read GetValue write SetValue;
     property Kind: TBooruTagType read GetKind write SetKind;
     /// <summary>Total posts count tagged with current tag.</summary>
-    property Count: Cardinal read GetCount write SetCount;
+    property Count: int64 read GetCount write SetCount;
   End;
 
   TBooruTagAr = TArray<IBooruTag>;
@@ -80,26 +84,32 @@ type
     { private }
     procedure SetId(const value: TBooruId);
     function GetId: TBooruId;
+    procedure SetPostId(const value: TBooruId);
+    function GetPostId: TBooruId;
+    procedure SetCreatorId(const value: TBooruId);
+    function GetCreatorId: TBooruId;
     procedure SetUsername(const value: string);
     function GetUsername: string;
-//    procedure SetUserUrl(const value: string);
-//    function GetUserUrl: string;
     procedure SetTimestamp(const value: TDatetime);
     function GetTimestamp: TDatetime;
     procedure SetText(const value: string);
     function GetText: string;
     procedure SetScore(const value: TBooruScore);
     function GetScore: TBooruScore;
+    procedure SetIsDeleted(const value: boolean);
+    function GetIsDeleted: boolean;
     { public }
     procedure Assign(const Asource: IAssignAndClone);
     function Clone: IAssignAndClone;
     { public properties }
     property Id: TBooruId read GetId write SetId;
+    property PostId: TBooruId read GetPostId write SetPostId;
+    property CreatorId: TBooruId read GetCreatorId write SetCreatorId;
     property Username: string read GetUsername write SetUsername;
-//    property UserUrl: string read GetUserUrl write SetUserUrl;
     property Timestamp: TDatetime read GetTimestamp write SetTimestamp;
     property Text: string read GetText write SetText;
     property Score: TBooruScore read GetScore write SetScore;
+    property IsDeleted: boolean read GetIsDeleted write SetIsDeleted;
   End;
 
   TBooruCommentAr = TArray<IBooruComment>;
@@ -107,7 +117,7 @@ type
 
   IBooruPost = Interface(IBooruThumb)
     ['{F1F1BED9-9A91-49C2-A58B-CE4194945D57}']
-    { private }
+    { private \ protected }
     procedure SetId(const value: TBooruId);
     function GetId: TBooruId;
     procedure SetThumbnail(const value: string);
@@ -115,6 +125,8 @@ type
     function GetTagsValues: TArray<string>;
     procedure SetContentUrl(const value: string);
     function GetContentUrl: string;
+    procedure SetSampleUrl(const value: string);
+    function GetSampleUrl: string;
     procedure SetScore(const value: TBooruScore);
     function GetScore: TBooruScore;
     procedure SetUploader(const value: string);
@@ -123,6 +135,60 @@ type
     function GetTags: TBooruTagList;
     procedure SetComments(const value: TBooruCommentList);
     function GetComments: TBooruCommentList;
+    procedure SetUploaderId(const value: TBooruId);
+    function GetUploaderId: TBooruId;
+    procedure SetMd5(const value: string);
+    function GetMd5: string;
+    procedure SetHeight(const value: integer);
+    function GetHeight: integer;
+    procedure SetWidth(const value: integer);
+    function GetWidth: integer;
+    procedure SetSourceUrl(const value: string);
+    function GetSourceUrl: string;
+    procedure SetRating(const value: string);
+    function GetRating: string;
+    procedure SetSampleWidth(const value: integer);
+    function GetSampleWidth: integer;
+    procedure SetSampleHeight(const value: integer);
+    function GetSampleHeight: integer;
+    procedure SetPreviewWidth(const value: integer);
+    function GetPreviewWidth: integer;
+    procedure SetPreviewHeight(const value: integer);
+    function GetPreviewHeight: integer;
+    procedure SetHasChildren(const value: boolean);
+    function GetHasChildren: boolean;
+    procedure SetHasNotes(const value: boolean);
+    function GetHasNotes: boolean;
+    procedure SetIsPending(const value: boolean);
+    function GetIsPending: boolean;
+    procedure SetIsBanned(const value: boolean);
+    function GetIsBanned: boolean;
+    procedure SetIsDeleted(const value: boolean);
+    function GetIsDeleted: boolean;
+    procedure SetIsFlagged(const value: boolean);
+    function GetIsFlagged: boolean;
+    procedure SetHasComments(const value: boolean);
+    function GetHasComments: boolean;
+    procedure SetCreatedAt(const value: TDateTime);
+    function GetCreatedAt: TDateTime;
+    procedure SetFileSize(const value: int64);
+    function GetFileSize: int64;
+    procedure SetParentId(const value: TBooruId);
+    function GetParentId: TBooruId;
+    procedure SetFavCount(const value: integer);
+    function GetFavCount: integer;
+    procedure SetFileExt(const value: string);
+    function GetFileExt: string;
+    procedure SetLastCommentBumpedAt(const value: TDateTime);
+    function GetLastCommentBumpedAt: TDateTime;
+    procedure SetLastNotedAt(const value: TDateTime);
+    function GetLastNotedAt: TDateTime;
+    procedure SetApproverId(const value: TBooruId);
+    function GetApproverId: TBooruId;
+    procedure SetUpScore(const value: integer);
+    function GetUpScore: integer;
+    procedure SetDownScore(const value: integer);
+    function GetDownScore: integer;
     { public }
     procedure Assign(const Asource: IAssignAndClone);
     function Clone: IAssignAndClone;
@@ -130,17 +196,47 @@ type
     function GetTagsByType(ATagType: TBooruTagType): TBooruTagAr;
     { public properties }
     property Id: TBooruId read GetId write SetId;
-    /// <summary>Sample image.</summary>
+    /// <summary>Preview image url (if available).</summary>
     property Thumbnail: string read GetThumbnail write SetThumbnail;
     property TagsValues: TArray<string> read GetTagsValues;
     /// <summary>Link on full sized image (or video).</summary>
     property ContentUrl: string read GetContentUrl write SetContentUrl;
+    property SampleUrl: string read GetSampleUrl write SetSampleUrl;
     property Score: TBooruScore read GetScore write SetScore;
-//    property Timestamp: TDatetime read GetTimestamp write SetTimestamp;
     /// <summary>Uploader username.</summary>
     property Uploader: string read GetUploader write SetUploader;
     property Tags: TBooruTagList read GetTags write SetTags;
     property Comments: TBooruCommentList read GetComments write SetComments;
+    property FavCount: integer read GetFavCount write SetFavCount;
+    property UpScore: integer read GetUpScore write SetUpScore;
+    property DownScore: integer read GetDownScore write SetDownScore;
+    property ParentId: TBooruId read GetParentId write SetParentId;
+    property FileSize: int64 read GetFileSize write SetFileSize;
+    property FileExt: string read GetFileExt write SetFileExt;
+    property SourceUrl: string read GetSourceUrl write SetSourceUrl;
+    property Rating: string read GetRating write SetRating;
+    property CreatedAt: TDateTime read GetCreatedAt write SetCreatedAt;
+    property LastCommentBumpedAt: TDateTime read GetLastCommentBumpedAt write SetLastCommentBumpedAt;
+    property LastNotedAt: TDateTime read GetLastNotedAt write SetLastNotedAt;
+    property HasChildren: boolean read GetHasChildren write SetHasChildren;
+    property HasComments: boolean read GetHasComments write SetHasComments;
+    property HasNotes: boolean read GetHasNotes write SetHasNotes;
+    property IsPending: boolean read GetIsPending write SetIsPending;
+    property IsFlagged: boolean read GetIsFlagged write SetIsFlagged;
+    property IsDeleted: boolean read GetIsDeleted write SetIsDeleted;
+    property IsBanned: boolean read GetIsBanned write SetIsBanned;
+    property ApproverId: TBooruId read GetApproverId write SetApproverId;
+    property UploaderId: TBooruId read GetUploaderId write SetUploaderId;
+    property Md5: string read GetMd5 write SetMd5;
+    { full image size }
+    property Height: integer read GetHeight write SetHeight;
+    property Width: integer read GetWidth write SetWidth;
+    { sample size }
+    property SampleWidth: integer read GetSampleWidth write SetSampleWidth;
+    property SampleHeight: integer read GetSampleHeight write SetSampleHeight;
+    { preview size }
+    property PreviewWidth: integer read GetPreviewWidth write SetPreviewWidth;
+    property PreviewHeight: integer read GetPreviewHeight write SetPreviewHeight;
   End;
 
   TBooruPostAr = TArray<IBooruPost>;
@@ -172,11 +268,11 @@ type
     /// <summary>Returns info about post</summary>
     /// <param name="ARequest">Text request (tag names separated by whitespace).</param>
     /// <param name="APage">Page number (0 is a first page by default).</param>
-    function GetPosts(ARequest: string; APage: integer = 0): TBooruThumbAr;
+    function GetPosts(ARequest: string; APage: integer = BOORU_FIRSTPAGE; ALimit: integer = BOORU_NOTSET): TBooruThumbAr;
     /// <param name="APage">Page number (0 is a first page by default).</param>
-    function GetPostComments(APostId: TBooruId; APage: integer = 0): TBooruCommentAr; overload;
+    function GetPostComments(APostId: TBooruId; APage: integer = BOORU_FIRSTPAGE; ALimit: integer = BOORU_NOTSET): TBooruCommentAr; overload;
     /// <param name="APage">Page number (0 is a first page by default).</param>
-    function GetPostComments(AThumb: IBooruThumb; APage: integer = 0): TBooruCommentAr; overload;
+    function GetPostComments(AThumb: IBooruThumb; APage: integer = BOORU_FIRSTPAGE; ALimit: integer = BOORU_NOTSET): TBooruCommentAr; overload;
     { public properties }
     /// <summary>Static class that being used for parse content from HTML pages.</summary>
     property BooruParser: TBooruParserClass read GetBooruParser write SetBooruParser;
@@ -198,9 +294,6 @@ type
     public
       class function CloneAr<T: IAssignAndClone>(ASource: TArray<T>): TArray<T>; static;
   End;
-
-const
-  DEFAULT_BOORUID = -1;
 
 implementation
 

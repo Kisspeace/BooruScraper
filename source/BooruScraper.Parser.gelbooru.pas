@@ -118,10 +118,10 @@ begin
 
   end;
 
-  { Image thumbnail (sapmple) }
+  { Image sapmple }
   var LImage := FindXById(LDoc, 'image');
   if Assigned(LImage) then
-    Result.Thumbnail := LImage.Attributes['src'];
+    Result.SampleUrl := LImage.Attributes['src'];
 
   { ContentUrl }
   LTmp := FindByText(LTagList, 'Original image', True, True);

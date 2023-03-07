@@ -25,7 +25,12 @@ uses
   BooruScraper.Parser.rule34us in '..\source\BooruScraper.Parser.rule34us.pas',
   BooruScraper.Client.Rule34us in '..\source\BooruScraper.Client.Rule34us.pas',
   BooruScraper.Parser.rule34PahealNet in '..\source\BooruScraper.Parser.rule34PahealNet.pas',
-  BooruScraper.Client.rule34PahealNet in '..\source\BooruScraper.Client.rule34PahealNet.pas';
+  BooruScraper.Client.rule34PahealNet in '..\source\BooruScraper.Client.rule34PahealNet.pas',
+  BooruScraper.Client.API.TbibOrg in '..\source\BooruScraper.Client.API.TbibOrg.pas',
+  BooruScraper.Urls in '..\source\BooruScraper.Urls.pas',
+  BooruScraper.Parser.API.TbibOrg in '..\source\BooruScraper.Parser.API.TbibOrg.pas',
+  BooruScraper.Client.API.danbooru in '..\source\BooruScraper.Client.API.danbooru.pas',
+  BooruScraper.Parser.API.danbooru in '..\source\BooruScraper.Parser.API.danbooru.pas';
 
 var
   Client: IBooruClient;
@@ -128,11 +133,12 @@ begin
 end;
 
 procedure PrintPost(A: IBooruPost); overload;
+
 begin
   if Assigned(A) then begin
-    var X := TJsonMom.ToJson(A);
+    var X := TJsonMom.ToJsonAuto(A);
     var LPost := TJsonMom.FromJsonIBooruPost(X);
-    X := TJsonMom.ToJson(LPost);
+    X := TJsonMom.ToJsonAuto(LPost);
     Writeln(X.AsJSON(True));
   end else
     Writeln('PrintPost --->> Post is NIL!');
@@ -162,12 +168,22 @@ begin
   Writeln('END ---------------------------');
 end;
 
+procedure GetPost(AClient: IBooruClient; AId: TBooruId);
+var
+  LPost: IBooruPost;
+begin
+  writeln('GET POST ' + AClient.Host + ': ' + AId.ToString + ';');
+  LPost := AClient.GetPost(AId);
+  PrintPost(LPost);
+  Writeln('END ---------------------------');
+end;
+
 procedure TestClient(AClient: IBooruClient; ARequest: string = ''; ATestClone: boolean = True);
 var
   LThumbs: TBooruThumbAr;
   LPost: IBooruPost;
 begin
-  LThumbs := AClient.GetPosts(ARequest, 4);
+  LThumbs := AClient.GetPosts(ARequest, 0, 40);
   PrintThumbs(LThumbs);
 
   if ATestClone and (Length(LThumbs) > 0) then
@@ -207,10 +223,10 @@ var
 begin
   Writeln('PARSER TEST --------------------');
 
-  LThumbs := AParser.ParsePostsFromPage(FileContent('../../' + AFilePrefix + '_list.html'));
+  LThumbs := AParser.ParsePostsFromPage(FileContent('../../temp/' + AFilePrefix + '_list.html'));
   PrintThumbs(LThumbs);
 
-  LPost := AParser.ParsePostFromPage(FileContent('../../' + AFilePrefix + '_post.html'));
+  LPost := AParser.ParsePostFromPage(FileContent('../../temp/' + AFilePrefix + '_post.html'));
   PrintPost(LPost);
 
   Writeln('PARSER TEST END ----------------');
@@ -223,12 +239,16 @@ var
   LAllContentSwitch: IEnableAllContent;
 begin
   try
-    Client := BooruScraper.NewClientXbooru;
+    Client := BooruScraper.NewClientGelbooru;
     SetWebClient(TBooruClientBase(Client).Client);
-//    Client.Host := 'https://xbooru.com';
+//    Client.Host := 'https://lolibooru.moe';
+
     if Supports(Client, IEnableAllContent, LAllContentSwitch) then
       LAllContentSwitch.EnableAllContent := True;
+
     TestClient(Client, '', True);
+
+
 //    TestParser(Client.BooruParser, 'rule34pahealnet');
 
     Readln;

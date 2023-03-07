@@ -125,7 +125,7 @@ begin
 
       LTmp := FindXFirst(LContentPush, '//img');
       if Assigned(LTmp) then
-        Result.Thumbnail := LTmp.Attrs['src'];
+        Result.SampleUrl := LTmp.Attrs['src'];
 
     end;
 

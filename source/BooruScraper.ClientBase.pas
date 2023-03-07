@@ -20,10 +20,10 @@ type
     public
       Client: TNetHttpClient;
       function GetPost(const AThumb: IBooruThumb): IBooruPost; overload; virtual;
-      function GetPosts(ARequest: string; APage: integer = 0): TBooruThumbAr; virtual; abstract;
+      function GetPosts(ARequest: string; APage: integer = BOORU_FIRSTPAGE; ALimit: integer = BOORU_NOTSET): TBooruThumbAr; virtual; abstract;
       function GetPost(AId: TBooruId): IBooruPost; overload; virtual; abstract;
-      function GetPostComments(APostId: TBooruId; APage: integer = 0): TBooruCommentAr; overload; virtual; abstract;
-      function GetPostComments(AThumb: IBooruThumb; APage: integer = 0): TBooruCommentAr; overload; virtual;
+      function GetPostComments(APostId: TBooruId; APage: integer = BOORU_FIRSTPAGE; ALimit: integer = BOORU_NOTSET): TBooruCommentAr; overload; virtual; abstract;
+      function GetPostComments(AThumb: IBooruThumb; APage: integer = BOORU_FIRSTPAGE; ALimit: integer = BOORU_NOTSET): TBooruCommentAr; overload; virtual;
       { --------------------- }
       property BooruParser: TBooruParserClass read GetBooruParser write SetBooruParser;
       property Host: string read GetHost write SetHost;
@@ -83,7 +83,7 @@ begin
   FHost := value;
 end;
 
-function TBooruClientBase.GetPostComments(AThumb: IBooruThumb; APage: integer): TBooruCommentAr;
+function TBooruClientBase.GetPostComments(AThumb: IBooruThumb; APage: integer; ALimit: integer): TBooruCommentAr;
 begin
   Result := Self.GetPostComments(AThumb.Id);
 end;

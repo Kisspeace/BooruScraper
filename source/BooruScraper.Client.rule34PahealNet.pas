@@ -4,19 +4,15 @@ interface
 uses
   Classes, Types, SysUtils, System.Generics.Collections,
   System.Net.URLClient, System.Net.HttpClientComponent, System.Net.HttpClient,
-  BooruScraper.Interfaces, BooruScraper.ClientBase;
-
-const
-  /// <summary>Base url for rule34.paheal.net.</summary>
-  RULE34PAHEALNET_URL = 'https://rule34.paheal.net';
+  BooruScraper.Interfaces, BooruScraper.ClientBase, BooruScraper.Urls;
 
 type
 
   TRule34PahealNetClient = Class(TBooruClientBase, IBooruClient)
     public
       function GetPost(AId: TBooruId): IBooruPost; override;
-      function GetPosts(ARequest: string; APage: integer = 0): TBooruThumbAr; override;
-      function GetPostComments(APostId: TBooruId; APage: integer = 0): TBooruCommentAr; override;
+      function GetPosts(ARequest: string; APage: integer = BOORU_FIRSTPAGE; ALimit: integer = BOORU_NOTSET): TBooruThumbAr; override;
+      function GetPostComments(APostId: TBooruId; APage: integer = BOORU_FIRSTPAGE; ALimit: integer = BOORU_NOTSET): TBooruCommentAr; override;
       constructor Create; overload; override;
   End;
 
@@ -41,7 +37,7 @@ begin
 end;
 
 function TRule34PahealNetClient.GetPostComments(APostId: TBooruId;
-  APage: integer): TBooruCommentAr;
+  APage: integer; ALimit: integer): TBooruCommentAr;
 var
   LContent: string;
   LUrl: string;
@@ -52,7 +48,7 @@ begin
 end;
 
 function TRule34PahealNetClient.GetPosts(ARequest: string;
-  APage: integer): TBooruThumbAr;
+  APage: integer; ALimit: integer): TBooruThumbAr;
 var
   LContent: string;
   LUrl: string;

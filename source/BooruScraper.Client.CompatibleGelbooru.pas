@@ -4,22 +4,9 @@ interface
 uses
   Classes, Types, SysUtils, System.Generics.Collections,
   System.Net.URLClient, System.Net.HttpClientComponent, System.Net.HttpClient,
-  BooruScraper.Interfaces, BooruScraper.ClientBase;
+  BooruScraper.Interfaces, BooruScraper.ClientBase, BooruScraper.Urls;
 
 const
-  /// <summary>Base url for gelbooru.com.</summary>
-  GELBOORU_URL = 'https://gelbooru.com';
-  /// <summary>Base url for rule34.xxx.</summary>
-  RULE34XXX_URL = 'https://rule34.xxx';
-  /// <summary>Base url for realbooru.com.</summary>
-  REALBOORU_URL = 'https://realbooru.com';
-  /// <summary>Base url for xbooru.com.</summary>
-  XBOORU_URL = 'https://xbooru.com';
-  /// <summary>Base url for hypnohub.net</summary>
-  HYPNOHUBNET_URL = 'https://hypnohub.net';
-  /// <summary>Base url for tbib.org</summary>
-  TBIBORG_URL = 'https://tbib.org';
-
   /// <summary>Max thumbnails count given by one request.</summary>
   POSTS_PER_PAGE = 42;
   /// <summary>Max comments count given by one request.</summary>
@@ -33,9 +20,9 @@ type
       function PageNumPostToPid(APage: integer): cardinal;
     public
       function GetPost(AId: TBooruId): IBooruPost; override;
-      function GetPosts(ARequest: string; APage: integer = 0): TBooruThumbAr; override;
-      function GetPostComments(APostId: TBooruId; APage: integer = 0): TBooruCommentAr; override;
-      constructor Create; overload; override;
+      function GetPosts(ARequest: string; APage: integer = BOORU_FIRSTPAGE; ALimit: integer = BOORU_NOTSET): TBooruThumbAr; override;
+      function GetPostComments(APostId: TBooruId; APage: integer = BOORU_FIRSTPAGE; ALimit: integer = BOORU_NOTSET): TBooruCommentAr; override;
+      constructor Create; override;
   End;
 
   TGelbooruClient = Class(TGelbooruLikeClient, IEnableAllContent)
@@ -69,7 +56,7 @@ begin
 end;
 
 function TGelbooruLikeClient.GetPostComments(APostId: TBooruId;
-  APage: integer): TBooruCommentAr;
+  APage: integer; ALimit: integer): TBooruCommentAr;
 var
   LContent: string;
   LUrl: TURI;
@@ -83,7 +70,7 @@ begin
 end;
 
 function TGelbooruLikeClient.GetPosts(ARequest: string;
-  APage: integer): TBooruThumbAr;
+  APage: integer; ALimit: integer): TBooruThumbAr;
 var
   LContent: string;
   LUrl: TURI;

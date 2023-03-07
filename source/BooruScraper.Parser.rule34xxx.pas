@@ -145,10 +145,10 @@ begin
       Result.Tags.Add(LNewTag);
     end;
 
-    { Image thumbnail (sapmple) }
+    { Image sapmple }
     var LImage := FindXById(LDoc, 'image');
     if Assigned(LImage) then
-      Result.Thumbnail := NormalizeUrl(LImage.Attributes['src']);
+      Result.SampleUrl := NormalizeUrl(LImage.Attributes['src']);
 
   end;
 

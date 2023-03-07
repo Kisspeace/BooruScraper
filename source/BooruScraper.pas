@@ -6,14 +6,17 @@ uses
   BooruScraper.Interfaces,
   BooruScraper.ClientBase,
   BooruScraper.BaseTypes,
+  BooruScraper.Urls,
   BooruScraper.Client.CompatibleGelbooru,
   BooruScraper.Client.Rule34us,
   BooruScraper.Client.rule34PahealNet,
+  BooruScraper.Client.API.TbibOrg,
   BooruScraper.Parser.rule34xxx,
   BooruScraper.Parser.gelbooru,
   BooruScraper.Parser.Realbooru,
   BooruScraper.Parser.Rule34us,
-  BooruScraper.Parser.rule34PahealNet;
+  BooruScraper.Parser.rule34PahealNet,
+  BooruScraper.Parser.API.TbibOrg;
 
   function NewClient(AClientClass: TBooruClientBaseClass; AParser: TBooruParserClass; AHost: string): IBooruClient;
 
@@ -32,7 +35,7 @@ uses
   /// <summary>Client for <a href="https://hypnohub.net">hypnohub.net</a></summary>
   function NewClientHypnohubnet: IBooruClient;
   /// <summary>Client for <a href="https://tbib.org">tbib.org</a></summary>
-  function NewClientTbib: IBooruClient;
+  function NewClientTbib(APreferAPI: boolean = True): IBooruClient;
 
 implementation
 
@@ -76,9 +79,12 @@ begin
   Result := NewClient(TGelbooruLikeClient, TRule34xxxparser, HYPNOHUBNET_URL);
 end;
 
-function NewClientTbib: IBooruClient;
+function NewClientTbib(APreferAPI: boolean): IBooruClient;
 begin
-  Result := NewClient(TGelbooruLikeClient, TRule34xxxparser, TBIBORG_URL);
+  if APreferAPI then
+    Result := NewClient(TTbibAPIClient, TTbibOrgAPIParser, TBIBORG_URL)
+  else
+    Result := NewClient(TGelbooruLikeClient, TRule34xxxparser, TBIBORG_URL);
 end;
 
 end.

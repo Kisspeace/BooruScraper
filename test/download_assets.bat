@@ -1,17 +1,25 @@
-curl -fo rule34pahealnet_list.html "https://rule34.paheal.net/post/list/1"
-curl -fo rule34pahealnet_post.html "https://rule34.paheal.net/post/view/5519344"
+@ECHO OFF
+SET download_dir=temp\
+@MKDIR %download_dir% 
 
-curl -fo danboorudonmaisu_list.html "https://danbooru.donmai.us/posts?page=1"
-curl -fo danboorudonmaisu_post.html "https://danbooru.donmai.us/posts/6086433?q=order%3Arank"
+call :add bleachbooru "https://bleachbooru.org/posts?page=1" "https://bleachbooru.org/posts/68270"
+call :add rule34pahealnet "https://rule34.paheal.net/post/list/1" "https://rule34.paheal.net/post/view/5519344"
+call :add danbooru "https://danbooru.donmai.us/posts?page=1" "https://danbooru.donmai.us/posts/6086433?q=order%%3Arank"
+call :add r34xxx "https://rule34.xxx/index.php?page=post&s=list&tags=all" "https://rule34.xxx/index.php?page=post&s=view&id=7160782"
+call :add gelbooru "https://gelbooru.com/index.php?page=post&s=list&tags=all" "https://gelbooru.com/index.php?page=post&s=view&id=6543942"
+call :add realbooru "https://realbooru.com/index.php?page=post&s=list" "https://realbooru.com/index.php?page=post&s=view&id=818083"
+call :add rule34us "https://rule34.us/index.php?r=posts/index&q=all" "https://rule34.us/index.php?r=posts/view&id=4308147"
 
-curl -fo r34xxx_list.html "https://rule34.xxx/index.php?page=post&s=list&tags=all"
-curl -fo r34xxx_post.html "https://rule34.xxx/index.php?page=post&s=view&id=7160782"
+EXIT /B 0
 
-curl -fo gelbooru_list.html "https://gelbooru.com/index.php?page=post&s=list&tags=all"
-curl -fo gelbooru_post.html "https://gelbooru.com/index.php?page=post&s=view&id=6543942"
+:add
+    
+    SET name=%1
+    SET url_list=%2
+	SET url_post=%3
+    echo "-- DOWNLOADING %name%"
 
-curl -fo realbooru_list.html "https://realbooru.com/index.php?page=post&s=list"
-curl -fo realbooru_post.html "https://realbooru.com/index.php?page=post&s=view&id=818083"
+    curl -fo "%download_dir%%name%_list.html" %url_list%
+	curl -fo "%download_dir%%name%_post.html" %url_post%
 
-curl -fo rule34us_list.html "https://rule34.us/index.php?r=posts/index&q=all"
-curl -fo rule34us_post.html "https://rule34.us/index.php?r=posts/view&id=4308147"
+EXIT /B 0
