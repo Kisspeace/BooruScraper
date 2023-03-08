@@ -281,7 +281,7 @@ end;
 
 constructor TBooruThumbBase.Create;
 begin
-  FId := -1;
+  FId := BOORU_NOTSET;
   FThumbnail := '';
   FTagsValues := Nil;
 end;
