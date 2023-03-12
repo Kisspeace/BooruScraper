@@ -8,31 +8,30 @@ uses
 type
   TJsonMom = Class
     public
-      class function ToJsonAuto(const AVal: IAssignAndClone): ISuperObject; overload;
-      class function ToJson(const AVal: IBooruThumb): ISuperObject; overload;
-      class function ToJson(const AVal: IBooruTag): ISuperObject; overload;
-      class function ToJson(const AVal: IBooruComment): ISuperObject; overload;
-      class function ToJson(const AVal: IBooruPost): ISuperObject; overload;
-//      class function ToJson(const AVal: IBooruFullPost): ISuperObject; overload;
+      class function ToJsonAuto(AVal: IAssignAndClone): ISuperObject; overload;
+      class function ToJson(AVal: IBooruThumb): ISuperObject; overload;
+      class function ToJson(AVal: IBooruTag): ISuperObject; overload;
+      class function ToJson(AVal: IBooruComment): ISuperObject; overload;
+      class function ToJson(AVal: IBooruPost): ISuperObject; overload;
       { ------------------------------- }
       class function ToJson(AVal: TBooruTagAr): ISuperArray; overload;
       class function ToJson(AVal: TBooruCommentAr): ISuperArray; overload;
       class function ToJson(AVal: TBooruPostAr): ISuperArray; overload;
       { ------------------------------- }
-      class function FromJsonIBooruThumb(const A: ISuperObject): IBooruThumb;
-      class function FromJsonIBooruTag(const A: ISuperObject): IBooruTag;
-      class function FromJsonIBooruComment(const A: ISuperObject): IBooruComment;
-      class function FromJsonIBooruPost(const A: ISuperObject): IBooruPost;
+      class function FromJsonIBooruThumb(A: ISuperObject): IBooruThumb;
+      class function FromJsonIBooruTag(A: ISuperObject): IBooruTag;
+      class function FromJsonIBooruComment(A: ISuperObject): IBooruComment;
+      class function FromJsonIBooruPost(A: ISuperObject): IBooruPost;
       { ------------------------------- }
-      class function FromJsonIBooruThumbAr(const A: ISuperArray): TBooruThumbAr;
-      class function FromJsonIBooruTagAr(const A: ISuperArray): TBooruTagAr;
-      class function FromJsonIBooruCommentAr(const A: ISuperArray): TBooruCommentAr;
-      class function FromJsonIBooruPostAr(const A: ISuperArray): TBooruPostAr;
+      class function FromJsonIBooruThumbAr(A: ISuperArray): TBooruThumbAr;
+      class function FromJsonIBooruTagAr(A: ISuperArray): TBooruTagAr;
+      class function FromJsonIBooruCommentAr(A: ISuperArray): TBooruCommentAr;
+      class function FromJsonIBooruPostAr(A: ISuperArray): TBooruPostAr;
   End;
 
 implementation
 
-class function TJsonMom.ToJson(const AVal: IBooruThumb): ISuperObject;
+class function TJsonMom.ToJson(AVal: IBooruThumb): ISuperObject;
 begin
   Result := SO();
   with Result do begin
@@ -42,7 +41,7 @@ begin
   end;
 end;
 
-class function TJsonMom.ToJson(const AVal: IBooruTag): ISuperObject;
+class function TJsonMom.ToJson(AVal: IBooruTag): ISuperObject;
 begin
   Result := SO();
   with Result do begin
@@ -52,7 +51,7 @@ begin
   end;
 end;
 
-class function TJsonMom.ToJson(const AVal: IBooruComment): ISuperObject;
+class function TJsonMom.ToJson(AVal: IBooruComment): ISuperObject;
 begin
   Result := SO();
   with Result do begin
@@ -68,7 +67,7 @@ begin
   end;
 end;
 
-class function TJsonMom.ToJson(const AVal: IBooruPost): ISuperObject;
+class function TJsonMom.ToJson(AVal: IBooruPost): ISuperObject;
 begin
   Result := SO();
   with Result do begin
@@ -120,13 +119,12 @@ begin
     Result.Add(Self.ToJson(AVal[I]));
 end;
 
-class function TJsonMom.FromJsonIBooruComment(const A: ISuperObject): IBooruComment;
+class function TJsonMom.FromJsonIBooruComment(A: ISuperObject): IBooruComment;
 begin
   Result := TJSON.Parse<TBooruCommentBase>(A);
 end;
 
-class function TJsonMom.FromJsonIBooruCommentAr(
- const A: ISuperArray): TBooruCommentAr;
+class function TJsonMom.FromJsonIBooruCommentAr(A: ISuperArray): TBooruCommentAr;
 var
   I: integer;
 begin
@@ -134,7 +132,7 @@ begin
     Result := Result + [Self.FromJsonIBooruComment(A.O[I])];
 end;
 
-class function TJsonMom.FromJsonIBooruPost(const A: ISuperObject): IBooruPost;
+class function TJsonMom.FromJsonIBooruPost(A: ISuperObject): IBooruPost;
 begin
   Result := TBooruPostBase.Create;
   with Result do begin
@@ -145,33 +143,36 @@ begin
     Score := A.I['Score'];
     Uploader := A.S['Uploader'];
 
-    UploaderId := A.I['UploaderId'];
-    Md5 := A.S['Md5'];
-    Height := A.I['Height'];
-    Width := A.I['Width'];
-    SourceUrl := A.S['SourceUrl'];
-    Rating := A.S['Rating'];
-    SampleHeight := A.I['SampleHeight'];
-    SampleWidth := A.I['SampleWidth'];
-    PreviewHeight := A.I['PreviewHeight'];
-    PreviewWidth := A.I['PreviewWidth'];
-    HasChildren := A.B['HasChildren'];
-    IsPending := A.B['IsPending'];
-    IsFlagged := A.B['IsFlagged'];
-    IsBanned := A.B['IsBanned'];
-    IsDeleted := A.B['IsDeleted'];
-    HasComments := A.B['HasComments'];
-    HasNotes := A.B['HasNotes'];
-    CreatedAt := A.D['CreatedAt'];
-    FileSize := A.I['FileSize'];
-    FileExt := A.S['FileExt'];
-    ParentId := A.I['ParentId'];
-    FavCount := A.I['FavCount'];
-    LastCommentBumpedAt := A.D['LastCommentBumpedAt'];
-    LastNotedAt := A.D['LastNotedAt'];
-    ApproverId := A.I['ApproverId'];
-    UpScore := A.I['UpScore'];
-    DownScore := A.I['DownScore'];
+    if A.Null['Md5'] = TMemberStatus.jAssigned then
+    begin
+      UploaderId := A.I['UploaderId'];
+      Md5 := A.S['Md5'];
+      Height := A.I['Height'];
+      Width := A.I['Width'];
+      SourceUrl := A.S['SourceUrl'];
+      Rating := A.S['Rating'];
+      SampleHeight := A.I['SampleHeight'];
+      SampleWidth := A.I['SampleWidth'];
+      PreviewHeight := A.I['PreviewHeight'];
+      PreviewWidth := A.I['PreviewWidth'];
+      HasChildren := A.B['HasChildren'];
+      IsPending := A.B['IsPending'];
+      IsFlagged := A.B['IsFlagged'];
+      IsBanned := A.B['IsBanned'];
+      IsDeleted := A.B['IsDeleted'];
+      HasComments := A.B['HasComments'];
+      HasNotes := A.B['HasNotes'];
+      CreatedAt := A.D['CreatedAt'];
+      FileSize := A.I['FileSize'];
+      FileExt := A.S['FileExt'];
+      ParentId := A.I['ParentId'];
+      FavCount := A.I['FavCount'];
+      LastCommentBumpedAt := A.D['LastCommentBumpedAt'];
+      LastNotedAt := A.D['LastNotedAt'];
+      ApproverId := A.I['ApproverId'];
+      UpScore := A.I['UpScore'];
+      DownScore := A.I['DownScore'];
+    end;
 
     if A.Null['Tags'] = TMemberStatus.jAssigned then
       Tags.AddRange(TJsonMom.FromJsonIBooruTagAr(A.A['Tags']));
@@ -181,7 +182,7 @@ begin
   end;
 end;
 
-class function TJsonMom.FromJsonIBooruPostAr(const A: ISuperArray): TBooruPostAr;
+class function TJsonMom.FromJsonIBooruPostAr(A: ISuperArray): TBooruPostAr;
 var
   I: integer;
 begin
@@ -189,12 +190,12 @@ begin
     Result := Result + [Self.FromJsonIBooruPost(A.O[I])];
 end;
 
-class function TJsonMom.FromJsonIBooruTag(const A: ISuperObject): IBooruTag;
+class function TJsonMom.FromJsonIBooruTag(A: ISuperObject): IBooruTag;
 begin
   Result := TJSON.Parse<TBooruTagBase>(A);
 end;
 
-class function TJsonMom.FromJsonIBooruTagAr(const A: ISuperArray): TBooruTagAr;
+class function TJsonMom.FromJsonIBooruTagAr(A: ISuperArray): TBooruTagAr;
 var
   I: integer;
 begin
@@ -202,18 +203,24 @@ begin
     Result := Result + [Self.FromJsonIBooruTag(A.O[I])];
 end;
 
-class function TJsonMom.FromJsonIBooruThumb(const A: ISuperObject): IBooruThumb;
+class function TJsonMom.FromJsonIBooruThumb(A: ISuperObject): IBooruThumb;
+var
+  LAr: ISuperArray;
 begin
   Result := TBooruThumbBase.Create;
   with Result do begin
     Id := A.I['Id'];
     Thumbnail := A.S['Thumbnail'];
-    TagsValues := TJson.Parse<TArray<string>>(A.A['TagsValues']);
+
+    if A.Null['TagsValues'] = TMemberStatus.jAssigned then
+    begin
+      LAr := A.A['TagsValues'];
+      TagsValues := TJson.Parse<TArray<string>>(LAr);
+    end;
   end;
-//  Result := TJSON.Parse<TBooruThumbBase>(A);
 end;
 
-class function TJsonMom.FromJsonIBooruThumbAr(const A: ISuperArray): TBooruThumbAr;
+class function TJsonMom.FromJsonIBooruThumbAr(A: ISuperArray): TBooruThumbAr;
 var
   I: integer;
 begin
@@ -230,7 +237,7 @@ begin
     Result.Add(Self.ToJson(AVal[I]));
 end;
 
-class function TJsonMom.ToJsonAuto(const AVal: IAssignAndClone): ISuperObject;
+class function TJsonMom.ToJsonAuto(AVal: IAssignAndClone): ISuperObject;
 var
   LPost: IBooruPost;
   LThumb: IBooruThumb;
