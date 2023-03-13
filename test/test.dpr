@@ -12,6 +12,7 @@ uses
   System.Generics.Collections,
   Net.HttpClient,
   Net.HttpClientComponent,
+  System.JSON,
   BooruScraper.Interfaces in '..\source\BooruScraper.Interfaces.pas',
   BooruScraper.ClientBase in '..\source\BooruScraper.ClientBase.pas',
   BooruScraper.Client.CompatibleGelbooru in '..\source\BooruScraper.Client.CompatibleGelbooru.pas',
@@ -30,7 +31,8 @@ uses
   BooruScraper.Urls in '..\source\BooruScraper.Urls.pas',
   BooruScraper.Parser.API.TbibOrg in '..\source\BooruScraper.Parser.API.TbibOrg.pas',
   BooruScraper.Client.API.danbooru in '..\source\BooruScraper.Client.API.danbooru.pas',
-  BooruScraper.Parser.API.danbooru in '..\source\BooruScraper.Parser.API.danbooru.pas';
+  BooruScraper.Parser.API.danbooru in '..\source\BooruScraper.Parser.API.danbooru.pas',
+  BooruScraper.Serialize.Json in '..\source\BooruScraper.Serialize.Json.pas';
 
 var
   Client: IBooruClient;
@@ -133,13 +135,17 @@ begin
 end;
 
 procedure PrintPost(A: IBooruPost); overload;
-
+var
+  X: TJsonObject;
 begin
   if Assigned(A) then begin
-    var X := TJsonMom.ToJsonAuto(A);
+    X := TJsonMom.ToJsonAuto(A);
+    writeln('Before: ' + X.ToJSON);
     var LPost := TJsonMom.FromJsonIBooruPost(X);
+    X.Free;
     X := TJsonMom.ToJsonAuto(LPost);
-    Writeln(X.AsJSON(True));
+    Writeln(X.ToJSON);
+    X.Free;
   end else
     Writeln('PrintPost --->> Post is NIL!');
 end;
@@ -153,19 +159,22 @@ end;
 procedure TestClone(AObject: IAssignAndClone);
 var
   LCopy: IAssignAndClone;
-  LOJson: ISuperObject;
-  LCJson: ISuperObject;
+  LOJson: TJsonObject;
+  LCJson: TJsonObject;
 begin
   LOJson := TJsonMom.ToJsonAuto(AObject);
   Writeln('ORIGINAL ----------------------');
-  Writeln(LOJson.AsJSON(True));
+  Writeln(LOJson.ToJSON);
   Writeln('END ---------------------------');
 
   LCopy := AObject.Clone;
   LCJson := TJsonMom.ToJsonAuto(LCopy);
   Writeln('COPY --------------------------');
-  Writeln(LCJson.AsJSON(True));
+  Writeln(LCJson.ToJSON);
   Writeln('END ---------------------------');
+
+  LOJson.Free;
+  LCJson.Free;
 end;
 
 procedure GetPost(AClient: IBooruClient; AId: TBooruId);
@@ -250,7 +259,7 @@ var
 begin
   try
     { https://lolibooru.moe/help/api }
-    Client := BooruScraper.NewClientAllTheFallen(True);
+    Client := BooruScraper.NewClientRule34xxx;
 //    Client.Host := '';
 
     if (Client.Host <> DANBOORUDONMAIUS_URL) then
