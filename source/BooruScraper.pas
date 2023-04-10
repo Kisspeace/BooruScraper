@@ -46,6 +46,9 @@ uses
   function NewClientBleachbooru(APreferAPI: boolean = True): IBooruClient;
   /// <summary>Client for <a href="https://booru.allthefallen.moe">https://booru.allthefallen.moe</a></summary>
   function NewClientAllTheFallen(APreferAPI: boolean = True): IBooruClient;
+  /// <summary>Client for <a href="illusioncards.booru.org">https://illusioncards.booru.org</a></summary>
+  function NewClientIllusioncards: IBooruClient;
+
 
 implementation
 
@@ -110,6 +113,11 @@ end;
 function NewClientAllTheFallen(APreferAPI: boolean = True): IBooruClient;
 begin
   Result := NewClient(TDanbooruAPIClient, TDanbooruAPIParser, BOORUALLTHEFALLENMOE_URL);
+end;
+
+function NewClientIllusioncards: IBooruClient;
+begin
+  Result := NewClient(TGelbooruClient, TGelbooruParser, ILLUSIONCARFSBOORU_URL);
 end;
 
 end.

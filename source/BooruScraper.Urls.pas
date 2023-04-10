@@ -25,6 +25,8 @@ const
   BLEACHBOORUORG_URL = 'https://bleachbooru.org';
   /// <summary>Base url for booru.allthefallen.moe.</summary>
   BOORUALLTHEFALLENMOE_URL = 'https://booru.allthefallen.moe';
+  /// <summary>Base url for illusioncards.booru.org.</summary>
+  ILLUSIONCARFSBOORU_URL = 'https://illusioncards.booru.org';
 
 implementation
 
