@@ -21,20 +21,34 @@ implementation
 class function TGelbooruParser.ParsePostsFromPage(const ASource: string): TBooruThumbAr;
 var
   LDoc: IHtmlElement;
+  LThumbContainer: IHtmlElement;
+  LThumbs: IHtmlElementList;
+  LOldStyle: Boolean;
   I: integer;
 begin
+  LOldStyle := False;
   LDoc := ParserHtml(ASource);
-  var LThumbContainer := FindXByClass(LDoc, 'thumbnail-container');
+  LThumbContainer := FindXByClass(LDoc, 'thumbnail-container');
+  if not Assigned(LThumbContainer) then begin
+    LThumbContainer := FindXByClass(LDoc, 'content'); { Gelbooru Beta 0.1.11 }
+    if Assigned(LThumbContainer) then
+      LOldStyle := True;
+  end;
+
   if Assigned(LThumbContainer) then begin
 
-    var LThumbs := FindAllByClass(LThumbContainer, 'thumbnail-preview');
+    if LOldStyle then
+      LThumbs := FindAllByClass(LThumbContainer, 'thumb')
+    else
+      LThumbs := FindAllByClass(LThumbContainer, 'thumbnail-preview');
+
     for I := 0 to LThumbs.Count - 1 do begin
       var LThumb := LThumbs[I];
       var LRes: IBooruThumb := TBooruThumbBase.Create;
 
       { Id }
       var LTmp: string := LThumb.FindX('//a')[0].Attributes['id'];
-      LTmp := Copy(LTmp, Low(LTmp) + 1, Length(LTmp)); { like p4353455 }
+      LTmp := OnlyDigits(LTmp); { like p4353455 }
       LRes.Id := StrToInt64(LTmp);
 
       { Thumbnail }
@@ -53,7 +67,6 @@ begin
       Result := Result + [LRes];
 
     end;
-
   end;
 end;
 
@@ -63,7 +76,9 @@ var
   I: integer;
   LTmps: IHtmlElementList;
   LTmp: IHtmlElement;
+  LTagList: IHtmlElement;
   LStr, LStr2: string;
+  LOldStyle: Boolean;
 
   procedure ParseTags(AList: IHtmlElementList; ATagType: TBooruTagType);
   var
@@ -76,56 +91,91 @@ var
 
       { Tag value (name) }
       LTmps := LTag.FindX('//a');
-      LNewTag.Value := NormalizeTag(LTmps.Items[1].InnerHtml);
+      if LTmps.Count > 0 then begin
+        if LTmps.Count > 1 then
+          LTmp := LTmps[1]
+        else
+          LTmp := LTmps[0];
 
-      { Tag count }
-      var TagCount := LTag.FindX('//span').Items[1];
-      LNewTag.Count := StrToInt(TagCount.InnerText);
+        if Assigned(LTmp) then begin
+          LStr2 := LTmp.InnerText;
+          LNewTag.Value := NormalizeTag(LStr2);
 
-      Result.Tags.Add(LNewTag);
+          { Tag count }
+          LTmps := LTag.FindX('//span');
+          if LTmps.Count > 0 then begin
+            if LTmps.Count > 1 then
+              LStr := LTmps[1].InnerText
+            else begin
+              LStr := LTmps[0].InnerText;
+              LStr := Trim(Lstr);
+              LStr := GetAfter(LStr, LStr2);
+              LStr := OnlyDigits(LStr);
+            end;
+
+            LNewTag.Count := StrToInt(LStr);
+          end;
+
+          Result.Tags.Add(LNewTag);
+        end;
+      end;
     end;
   end;
 
 begin
   Result := TBooruPostBase.Create;
   LDoc := ParserHtml(ASource);
+  LOldStyle := False;
   
   { Tags }
-  var LTagList := FindXById(LDoc, 'tag-list');
+  LTagList := FindXById(LDoc, 'tag-list');
   if Assigned(LTagList) then begin
     ParseTags(FindAllByClass(LTagList, 'tag-type-artist'), TagArtist);
     ParseTags(FindAllByClass(LTagList, 'tag-type-character'), TagCharacter);
     ParseTags(FindAllByClass(LTagList, 'tag-type-copyright'), TagCopyright);
     ParseTags(FindAllByClass(LTagList, 'tag-type-metadata'), TagMetadata);
     ParseTags(FindAllByClass(LTagList, 'tag-type-general'), TagGeneral);
+  end else begin { Gelbooru Beta 0.1.11 }
+    LTagList := FindXById(LDoc, 'tag_list');
+    if Assigned(LTagList) then begin
+      LOldStyle := True;
+      ParseTags(LTagList.FindX('//li'), TagGeneral);
+    end;
   end;
 
-  LStr :=  THTMLEncoding.HTML.Decode(LTagList.Text);
+  if Assigned(LTagList) then begin
+    LStr :=  THTMLEncoding.HTML.Decode(LTagList.Text);
 
-  { Id }
-  LStr2 := Trim(GetBetween(LStr, 'Id:', 'Posted'));
-  Result.Id := StrToInt64(LStr2);
+    { Id }
+    LStr2 := Trim(GetBetween(LStr, 'Id:', 'Posted'));
+    Result.Id := StrToInt64(LStr2);
 
-  { Uploader username }
-  LStr2 := Trim(GetBetween(LStr, 'Uploader:', 'Size:'));
-  Result.Uploader := LStr2;
+    { Uploader username }
+    if LOldStyle then
+      LStr2 := Trim(GetBetween(LStr, 'By:', 'Size:'))
+    else
+      LStr2 := Trim(GetBetween(LStr, 'Uploader:', 'Size:'));
+    Result.Uploader := LStr2;
 
-  { Score }
-  try
-    LStr2 := Trim(GetBetween(LStr, 'Score: ', ' '));
-    Result.Score := StrToInt(LStr2);
-  except
+    { Score }
+    try
+      LStr2 := Trim(GetBetween(LStr, 'Score: ', ' '));
+      LStr2 := OnlyDigits(LStr);
+      Result.Score := StrToInt(LStr2);
+    except
 
+    end;
+
+    { Image sapmple }
+    var LImage := FindXById(LDoc, 'image');
+    if Assigned(LImage) then
+      Result.SampleUrl := LImage.Attributes['src'];
+
+    { ContentUrl }
+    LTmp := FindByText(LTagList, 'Original image', True, True);
+    if Assigned(LTmp) then
+      Result.ContentUrl := LTmp.Attributes['href'];
   end;
-
-  { Image sapmple }
-  var LImage := FindXById(LDoc, 'image');
-  if Assigned(LImage) then
-    Result.SampleUrl := LImage.Attributes['src'];
-
-  { ContentUrl }
-  LTmp := FindByText(LTagList, 'Original image', True, True);
-  Result.ContentUrl := LTmp.Attributes['href'];
 
   Result.Comments.AddRange(ParseCommentsFromPostPage(LDoc));
 end;
@@ -155,18 +205,10 @@ begin
 
     LStr2 := LBody.Children[2].Text; // username commented at 2021-10-12 08:39:21 » #1111111
 
-    { Comment Id } //FIXME
+    { Comment Id }
     try
-      LStr := '';
       N := LStr2.IndexOf('#') + 2;
-
-      for N := N to high(LStr2) do begin
-        if LStr2[N] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] then
-          LStr := LStr + LStr2[N]
-        else
-          Break;
-      end;
-
+      LStr := OnlyDigits(LStr2);
       LNewComment.Id := StrToInt64(LStr);
     except
 

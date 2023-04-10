@@ -20,6 +20,8 @@ uses
   function NormalizeTags(ATags: TArray<String>): TArray<String>;
 
   function NormalizeUrl(AUrlStr: string): string;
+  function FilterCharSet(const ASource: string; const AAllowChars: array of Char): string;
+  function OnlyDigits(const ASource: string): string;
 
 const
 
@@ -166,6 +168,36 @@ begin
     Result := TURI.SCHEME_HTTPS + ':' + Result
   else
     Result := AUrlStr;
+end;
+
+function FilterCharSet(const ASource: string; const AAllowChars: array of Char): string;
+var
+  I, N: integer;
+  LAllow: boolean;
+begin
+  Result := '';
+  for I := Low(ASource) to High(ASource) do
+  begin
+    var LChar := ASource[I];
+    LAllow := False;
+
+    for N := Low(AAllowChars) to High(AAllowChars) do
+    begin
+      if LChar = AAllowChars[N] then begin
+        LAllow := True;
+        break;
+      end;
+    end;
+
+    if LAllow then
+      Result := Result + LChar;
+  end;
+end;
+
+function OnlyDigits(const ASource: string): string;
+begin
+  Result := FilterCharSet(ASource,
+    ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
 end;
 
 end.
