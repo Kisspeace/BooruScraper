@@ -27,6 +27,8 @@ const
   BOORUALLTHEFALLENMOE_URL = 'https://booru.allthefallen.moe';
   /// <summary>Base url for illusioncards.booru.org.</summary>
   ILLUSIONCARFSBOORU_URL = 'https://illusioncards.booru.org';
+  /// <summary>Base url for db.bepis.moe.</summary>
+  DBBEPISMOE_URL = 'https://db.bepis.moe';
 
 implementation
 

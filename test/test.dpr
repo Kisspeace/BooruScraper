@@ -33,7 +33,9 @@ uses
   BooruScraper.Parser.API.TbibOrg in '..\source\BooruScraper.Parser.API.TbibOrg.pas',
   BooruScraper.Client.API.danbooru in '..\source\BooruScraper.Client.API.danbooru.pas',
   BooruScraper.Parser.API.danbooru in '..\source\BooruScraper.Parser.API.danbooru.pas',
-  BooruScraper.Serialize.Json in '..\source\BooruScraper.Serialize.Json.pas';
+  BooruScraper.Serialize.Json in '..\source\BooruScraper.Serialize.Json.pas',
+  BooruScraper.Parser.BepisDb in '..\source\BooruScraper.Parser.BepisDb.pas',
+  BooruScraper.Client.BepisDb in '..\source\BooruScraper.Client.BepisDb.pas';
 
 var
   Client: IBooruClient;
@@ -242,8 +244,7 @@ begin
   if Length(LThumbs) > 0 then begin
     LPost := AClient.GetPost(LThumbs[0]);
     PrintPost(LPost);
-
-    if ATestClone then
+    if Assigned(LPost) and ATestClone then
       TestClone(LPost);
 
     writeln('');
@@ -285,22 +286,22 @@ var
   LPosts: TBooruPostAr;
   LThumbs: TBooruThumbAr;
   LAllContentSwitch: IEnableAllContent;
+  I: integer;
 begin
   try
-    TestGet('https://db.bepis.moe/honeyselect?orderby=popularity');
-    Readln;
     { https://lolibooru.moe/help/api }
-    Client := BooruScraper.NewClientRule34xxx;
+    Client := BooruScraper.NewClientBepisDb;
 //    Client.Host := '';
-
-    if (Client.Host <> DANBOORUDONMAIUS_URL) then
+//
+    if (Client.Host <> DANBOORUDONMAIUS_URL)
+    and (Client.Host <> DBBEPISMOE_URL) then
       SetWebClient(TBooruClientBase(Client).Client);
-
+//
     if Supports(Client, IEnableAllContent, LAllContentSwitch) then
       LAllContentSwitch.EnableAllContent := True;
-
+//
     TestClient(Client, '', True);
-//    TestParser(Client.BooruParser, 'rule34pahealnet');
+//    TestParser(Client.BooruParser, 'dbbepismoe');
 
     Readln;
   except

@@ -10,6 +10,7 @@ uses
   function FindXById(AElement: IHtmlElement; AId: string): IHtmlElement;
   function FindAllByClass(AElement: IHtmlElement; AClass: string): IHtmlElementList;
   function FindByText(AElement: IHtmlElement; AText: string; ATrim: boolean = True; AIgnoreCase: boolean = False): IHtmlElement;
+  function FindMetaProperty(AElement: IHtmlElement; AProperty: string): IHtmlElement;
 
   /// <summary>Returns string between two sub strings.</summaru>
   function GetBetween(const ASource: string; ALeft, ARight: string): string;
@@ -129,6 +130,23 @@ begin
         Exit(LRes);
     end;
   end;
+end;
+
+function FindMetaProperty(AElement: IHtmlElement; AProperty: string): IHtmlElement;
+var
+  I: integer;
+  LItems: IHtmlElementList;
+begin
+  LItems := AElement.FindX('//meta');
+  for I := 0 to LItems.Count - 1 do
+  begin
+    if (AProperty = LItems[I].Attrs['property']) then
+    begin
+      Result := LItems[I];
+      exit;
+    end;
+  end;
+  Result := Nil;
 end;
 
 function GetAfter(const ASource: string; ASub: string): string;

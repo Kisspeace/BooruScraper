@@ -12,13 +12,15 @@ uses
   BooruScraper.Client.rule34PahealNet,
   BooruScraper.Client.API.TbibOrg,
   BooruScraper.Client.API.danbooru,
+  BooruScraper.Client.BepisDb,
   BooruScraper.Parser.rule34xxx,
   BooruScraper.Parser.gelbooru,
   BooruScraper.Parser.Realbooru,
   BooruScraper.Parser.Rule34us,
   BooruScraper.Parser.rule34PahealNet,
   BooruScraper.Parser.API.TbibOrg,
-  BooruScraper.Parser.API.danbooru;
+  BooruScraper.Parser.API.danbooru,
+  BooruScraper.Parser.BepisDb;
 
   function NewClient(AClientClass: TBooruClientBaseClass; AParser: TBooruParserClass; AHost: string): IBooruClient;
 
@@ -39,15 +41,17 @@ uses
   /// <summary>Client for <a href="https://tbib.org">tbib.org</a></summary>
   function NewClientTbib(APreferAPI: boolean = True): IBooruClient;
   /// <summary>Client for <a href="https://danbooru.donmai.us">danbooru.donmai.us</a>
-  /// With TNetHttpClient works only without custom headers.
+  /// With TNetHttpClient works only without custom headers. (JA3/JA3S i think)
   /// </summary>
   function NewClientDonmaiUs(APreferAPI: boolean = True): IBooruClient;
-  /// <summary>Client for <a href="https://bleachbooru.org">https://bleachbooru.org</a></summary>
+  /// <summary>Client for <a href="https://bleachbooru.org">bleachbooru.org</a></summary>
   function NewClientBleachbooru(APreferAPI: boolean = True): IBooruClient;
-  /// <summary>Client for <a href="https://booru.allthefallen.moe">https://booru.allthefallen.moe</a></summary>
+  /// <summary>Client for <a href="https://booru.allthefallen.moe">booru.allthefallen.moe</a></summary>
   function NewClientAllTheFallen(APreferAPI: boolean = True): IBooruClient;
-  /// <summary>Client for <a href="illusioncards.booru.org">https://illusioncards.booru.org</a></summary>
+  /// <summary>Client for <a href="illusioncards.booru.org">illusioncards.booru.org</a></summary>
   function NewClientIllusioncards: IBooruClient;
+  /// <summary>Client for <a href="https://db.bepis.moe">db.bepis.moe</a></summary>
+  function NewClientBepisDb: IBepisDbClient;
 
 
 implementation
@@ -118,6 +122,12 @@ end;
 function NewClientIllusioncards: IBooruClient;
 begin
   Result := NewClient(TGelbooruClient, TGelbooruParser, ILLUSIONCARFSBOORU_URL);
+end;
+
+function NewClientBepisDb: IBepisDbClient;
+begin
+  Result := NewClient(TBepisDbClient, TBepisDbParser, DBBEPISMOE_URL)
+    as IBepisDbClient;
 end;
 
 end.
