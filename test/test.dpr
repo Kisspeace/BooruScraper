@@ -290,8 +290,8 @@ var
 begin
   try
     { https://lolibooru.moe/help/api }
-    Client := BooruScraper.NewClientBepisDb;
-//    Client.Host := '';
+    Client := BooruScraper.NewClientHGoon;
+//    Client.Host := 'https://hgoon.booru.org';
 //
     if (Client.Host <> DANBOORUDONMAIUS_URL)
     and (Client.Host <> DBBEPISMOE_URL) then

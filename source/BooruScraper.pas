@@ -52,6 +52,8 @@ uses
   function NewClientIllusioncards: IBooruClient;
   /// <summary>Client for <a href="https://db.bepis.moe">db.bepis.moe</a></summary>
   function NewClientBepisDb: IBepisDbClient;
+  /// <summary>Client for <a href="https://hgoon.booru.org">hgoon.booru.org</a></summary>
+  function NewClientHgoon: IBooruClient;
 
 
 implementation
@@ -128,6 +130,11 @@ function NewClientBepisDb: IBepisDbClient;
 begin
   Result := NewClient(TBepisDbClient, TBepisDbParser, DBBEPISMOE_URL)
     as IBepisDbClient;
+end;
+
+function NewClientHgoon: IBooruClient;
+begin
+  Result := NewClient(TGelbooruClient, TGelbooruParser, HGOONBOORUORG_URL);
 end;
 
 end.

@@ -3,6 +3,7 @@
 interface
 
 const
+  { Supported sites list. }
   /// <summary>Base url for gelbooru.com.</summary>
   GELBOORU_URL = 'https://gelbooru.com';
   /// <summary>Base url for rule34.xxx.</summary>
@@ -29,6 +30,8 @@ const
   ILLUSIONCARFSBOORU_URL = 'https://illusioncards.booru.org';
   /// <summary>Base url for db.bepis.moe.</summary>
   DBBEPISMOE_URL = 'https://db.bepis.moe';
+  /// <summary>Base url for hgoon.booru.org.</summary>
+  HGOONBOORUORG_URL = 'https://hgoon.booru.org';
 
 implementation
 
