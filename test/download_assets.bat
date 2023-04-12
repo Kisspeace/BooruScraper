@@ -2,6 +2,7 @@
 SET download_dir=temp\
 @MKDIR %download_dir% 
 
+call :add dbbepismoe "https://db.bepis.moe/koikatsu" "https://db.bepis.moe/koikatsu/view/303101"
 call :add bleachbooru "https://bleachbooru.org/posts?page=1" "https://bleachbooru.org/posts/68270"
 call :add rule34pahealnet "https://rule34.paheal.net/post/list/1" "https://rule34.paheal.net/post/view/5519344"
 call :add danbooru "https://danbooru.donmai.us/posts?page=1" "https://danbooru.donmai.us/posts/6086433?q=order%%3Arank"

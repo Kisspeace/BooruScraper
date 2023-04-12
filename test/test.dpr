@@ -13,6 +13,7 @@ uses
   Net.HttpClient,
   Net.HttpClientComponent,
   System.JSON,
+  System.Diagnostics,
   BooruScraper.Interfaces in '..\source\BooruScraper.Interfaces.pas',
   BooruScraper.ClientBase in '..\source\BooruScraper.ClientBase.pas',
   BooruScraper.Client.CompatibleGelbooru in '..\source\BooruScraper.Client.CompatibleGelbooru.pas',
@@ -54,6 +55,34 @@ begin
     CustomHeaders['Sec-Fetch-Site']  := 'same-origin';
     CustomHeaders['Pragma']          := 'no-cache';
     CustomHeaders['Cache-Control']   := 'no-cache';
+  end;
+end;
+
+procedure TestGet(AUrl: string);
+var
+  LClient: TNetHttpClient;
+  LResponse: IHttpResponse;
+  I: integer;
+  LTimer: TStopWatch;
+begin
+  LTimer := TStopWatch.Create;
+  LClient := TNetHttpClient.Create(nil);
+  try
+    SetWebClient(LClient);
+    LTimer.Start;
+    LResponse := LCLient.Get(AUrl);
+    LTimer.Stop;
+    Writeln(LResponse.ContentAsString);
+    Writeln('_____________________STATUS_________________________');
+    Writeln(LResponse.StatusText + ': ' + LResponse.StatusCode.ToString);
+    Writeln(LTimer.ElapsedMilliseconds.ToString + ' Ms.');
+    Writeln('Headers (' + Length(LResponse.Headers).ToString + '):');
+    For I := Low(LResponse.Headers) to High(LResponse.Headers) do
+    begin
+      Writeln(LResponse.Headers[I].Name + ': ' + LResponse.Headers[I].Value);
+    end;
+  finally
+    LClient.Free;
   end;
 end;
 
@@ -258,6 +287,8 @@ var
   LAllContentSwitch: IEnableAllContent;
 begin
   try
+    TestGet('https://db.bepis.moe/honeyselect?orderby=popularity');
+    Readln;
     { https://lolibooru.moe/help/api }
     Client := BooruScraper.NewClientRule34xxx;
 //    Client.Host := '';
