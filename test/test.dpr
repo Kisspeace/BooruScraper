@@ -290,7 +290,7 @@ var
 begin
   try
     { https://lolibooru.moe/help/api }
-    Client := BooruScraper.NewClientHGoon;
+    Client := BooruScraper.NewClient('https://rule34.xxx');
 //    Client.Host := 'https://hgoon.booru.org';
 //
     if (Client.Host <> DANBOORUDONMAIUS_URL)

@@ -22,7 +22,9 @@ uses
   BooruScraper.Parser.API.danbooru,
   BooruScraper.Parser.BepisDb;
 
-  function NewClient(AClientClass: TBooruClientBaseClass; AParser: TBooruParserClass; AHost: string): IBooruClient;
+  /// <summary>Returns client for given URL, or returns Nil when site not supported.</summary>
+  function NewClient(const AUrl: string): IBooruClient; overload;
+  function NewClient(AClientClass: TBooruClientBaseClass; AParser: TBooruParserClass; AHost: string): IBooruClient; overload;
 
   /// <summary>Client for <a href="https://rule34.xxx">rule34.xxx</a></summary>
   function NewClientRule34xxx: IBooruClient;
@@ -57,6 +59,40 @@ uses
 
 
 implementation
+
+function NewClient(const AUrl: string): IBooruClient;
+begin
+  if RULE34XXX_URL = AUrl then
+    Result := NewClientRule34xxx
+  else if GELBOORU_URL = AUrl then
+    Result := NewClientGelbooru
+  else if REALBOORU_URL = AUrl then
+    Result := NewClientRealbooru
+  else if RULE34US_URL = AUrl then
+    Result := NewClientRule34us
+  else if RULE34PAHEALNET_URL = AUrl then
+    Result := NewClientRule34PahealNet
+  else if XBOORU_URL = AUrl then
+    Result := NewClientXbooru
+  else if HYPNOHUBNET_URL = AUrl then
+    Result := NewClientHypnohubnet
+  else if TBIBORG_URL = AUrl then
+    Result := NewClientTbib
+  else if DANBOORUDONMAIUS_URL = AUrl then
+    Result := NewClientDonmaiUs
+  else if BLEACHBOORUORG_URL = AUrl then
+    Result := NewClientBleachbooru
+  else if BOORUALLTHEFALLENMOE_URL = AUrl then
+    Result := NewClientAllTheFallen
+  else if ILLUSIONCARDSBOORU_URL = AUrl then
+    Result := NewClientIllusioncards
+  else if DBBEPISMOE_URL = AUrl then
+    Result := NewClientBepisDb
+  else if HGOONBOORUORG_URL = AUrl then
+    Result := NewClientHgoon
+  else
+    Result := Nil;
+end;
 
 function NewClient(AClientClass: TBooruClientBaseClass; AParser: TBooruParserClass; AHost: string): IBooruClient;
 begin
@@ -123,7 +159,7 @@ end;
 
 function NewClientIllusioncards: IBooruClient;
 begin
-  Result := NewClient(TGelbooruClient, TGelbooruParser, ILLUSIONCARFSBOORU_URL);
+  Result := NewClient(TGelbooruClient, TGelbooruParser, ILLUSIONCARDSBOORU_URL);
 end;
 
 function NewClientBepisDb: IBepisDbClient;
