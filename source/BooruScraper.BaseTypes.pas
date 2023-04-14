@@ -9,8 +9,8 @@ type
 
   TBooruThumbBase = Class(TInterfacedObject, IBooruThumb, IAssignAndClone)
     public { IAssignAndClone }
-      procedure Assign(const ASource: IAssignAndClone);
-      function Clone: IAssignAndClone;
+      procedure Assign(const ASource: IAssignAndClone); virtual;
+      function Clone: IAssignAndClone; virtual;
     protected
       FId: TBooruId;
       FThumbnail: string;
@@ -27,7 +27,24 @@ type
       property Thumbnail: string read GetThumbnail write SetThumbnail;
       property TagsValues: TArray<string> read GetTagsValues write SetTagsValues;
       { --------------------- }
-      constructor Create;
+      constructor Create; virtual;
+  End;
+
+  TBooruThumbWithStrId = Class(TBooruThumbBase, IBooruThumb, IAssignAndClone, IIdString)
+    public { IAssignAndClone }
+      procedure Assign(const ASource: IAssignAndClone); override;
+      function Clone: IAssignAndClone; override;
+    protected
+      FIdStr: string;
+      { --------------------- }
+      procedure IIdString.SetId = SetIdStr;
+      function IIdString.GetId = GetIdStr;
+      procedure SetIdStr(const value: string);
+      function GetIdStr: string;
+    public
+      property IdStr: string read GetIdStr write SetIdStr;
+      { --------------------- }
+      constructor Create; override;
   End;
 
   TBooruTagBase = Class(TInterfacedObject, IBooruTag, IAssignAndClone)
@@ -256,6 +273,23 @@ type
       { --------------------- }
       constructor Create; virtual;
       destructor Destroy; override;
+  End;
+
+  TBooruPostWithStrId = Class(TBooruPostBase, IBooruPost, IBooruThumb, IAssignAndClone, IIdString)
+    public { IAssignAndClone }
+      procedure Assign(const ASource: IAssignAndClone); override;
+      function Clone: IAssignAndClone; override;
+    protected
+      FIdStr: string;
+      { --------------------- }
+      procedure IIdString.SetId = SetIdStr;
+      function IIdString.GetId = GetIdStr;
+      procedure SetIdStr(const value: string);
+      function GetIdStr: string;
+    public
+      property IdStr: string read GetIdStr write SetIdStr;
+      { --------------------- }
+      constructor Create; override;
   End;
 
 implementation
@@ -990,6 +1024,72 @@ end;
 procedure TBooruPostBase.SetWidth(const value: integer);
 begin
   FWidth := value;
+end;
+
+{ TBooruThumbWithStrId }
+
+procedure TBooruThumbWithStrId.Assign(const ASource: IAssignAndClone);
+var
+  LIdStr: IIdString;
+begin
+  inherited;
+  if Supports(ASource, IIdString, LIdStr) then
+    Self.IdStr := LIdStr.Id;
+end;
+
+function TBooruThumbWithStrId.Clone: IAssignAndClone;
+begin
+  Result := TBooruThumbWithStrId.Create;
+  Result.Assign(Self);
+end;
+
+constructor TBooruThumbWithStrId.Create;
+begin
+  inherited;
+  FIdStr := '';
+end;
+
+function TBooruThumbWithStrId.GetIdStr: string;
+begin
+  Result := FIdStr;
+end;
+
+procedure TBooruThumbWithStrId.SetIdStr(const value: string);
+begin
+  FIdStr := value;
+end;
+
+{ TBooruPostWithStrId }
+
+procedure TBooruPostWithStrId.Assign(const ASource: IAssignAndClone);
+var
+  LIdStr: IIdString;
+begin
+  inherited;
+  if Supports(ASource, IIdString, LIdStr) then
+    Self.IdStr := LIdStr.Id;
+end;
+
+function TBooruPostWithStrId.Clone: IAssignAndClone;
+begin
+  Result := TBooruPostWithStrId.Create;
+  Result.Assign(Self);
+end;
+
+constructor TBooruPostWithStrId.Create;
+begin
+  inherited;
+  FIdStr := '';
+end;
+
+function TBooruPostWithStrId.GetIdStr: string;
+begin
+  Result := FIdStr;
+end;
+
+procedure TBooruPostWithStrId.SetIdStr(const value: string);
+begin
+  FIdStr := value;
 end;
 
 end.

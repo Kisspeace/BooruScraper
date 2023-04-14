@@ -37,6 +37,15 @@ type
 
   TAssignAndCloneAr = TArray<IAssignAndClone>;
 
+  IIdString = Interface
+    ['{B198E7A3-A001-4881-84B3-D1EE281375F4}']
+    { private }
+    procedure SetId(const value: string);
+    function GetId: string;
+    { public }
+    property Id: string read GetId write SetId;
+  End;
+
   IBooruThumb = Interface(IAssignAndClone)
     ['{074580BF-F36E-4DC4-BFF8-E02EA2EDE4E5}']
     { private }

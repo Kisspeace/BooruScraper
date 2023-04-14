@@ -32,12 +32,18 @@ type
 implementation
 
 class function TJsonMom.ToJson(AVal: IBooruThumb): ISuperObject;
+var
+  LIdStr: IIdString;
 begin
   Result := SO();
   with Result do begin
     I['Id'] := AVal.Id;
     S['Thumbnail'] := AVal.Thumbnail;
     A['TagsValues'] := TJSON.SuperObject<TArray<string>>(AVal.TagsValues).AsArray;
+
+    { v0.2.0 }
+    if Supports(AVal, IIdString, LIdStr) then
+      S['IdStr'] := LIdStr.Id;
   end;
 end;
 
@@ -68,6 +74,8 @@ begin
 end;
 
 class function TJsonMom.ToJson(AVal: IBooruPost): ISuperObject;
+var
+  LIdStr: IIdString;
 begin
   Result := SO();
   with Result do begin
@@ -107,6 +115,10 @@ begin
     I['ApproverId'] := AVal.ApproverId;
     I['UpScore'] := AVal.UpScore;
     I['DownScore'] := AVal.DownScore;
+
+    { v0.2.0 }
+    if Supports(AVal, IIdString, LIdStr) then
+      S['IdStr'] := LIdStr.Id;
   end;
 end;
 
@@ -133,8 +145,14 @@ begin
 end;
 
 class function TJsonMom.FromJsonIBooruPost(A: ISuperObject): IBooruPost;
+var
+  LIdStr: IIdString;
 begin
-  Result := TBooruPostBase.Create;
+  if A.Null['IdStr'] = TMemberStatus.jAssigned then
+    Result := TBooruPostWithStrId.Create
+  else
+    Result := TBooruPostBase.Create;
+
   with Result do begin
     Id := A.I['Id'];
     Thumbnail := A.S['Thumbnail'];
@@ -179,6 +197,10 @@ begin
 
     if A.Null['Comments'] = TMemberStatus.jAssigned then
       Comments.AddRange(TJsonMom.FromJsonIBooruCommentAr(A.A['Comments']));
+
+    { v0.2.0 }
+    if Supports(Result, IIdString, LIdStr) then
+      LIdStr.Id := A.S['IdStr'];
   end;
 end;
 
@@ -206,8 +228,13 @@ end;
 class function TJsonMom.FromJsonIBooruThumb(A: ISuperObject): IBooruThumb;
 var
   LAr: ISuperArray;
+  LIdStr: IIdString;
 begin
-  Result := TBooruThumbBase.Create;
+  if A.Null['IdStr'] = TMemberStatus.jAssigned then
+    Result := TBooruThumbWithStrId.Create
+  else
+    Result := TBooruThumbBase.Create;
+
   with Result do begin
     Id := A.I['Id'];
     Thumbnail := A.S['Thumbnail'];
@@ -217,6 +244,10 @@ begin
       LAr := A.A['TagsValues'];
       TagsValues := TJson.Parse<TArray<string>>(LAr);
     end;
+
+    { v0.2.0 }
+    if Supports(Result, IIdString, LIdStr) then
+      LIdStr.Id := A.S['IdStr'];
   end;
 end;
 

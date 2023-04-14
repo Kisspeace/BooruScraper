@@ -74,7 +74,14 @@ begin
 end;
 
 class function TJsonMom.FromJsonIBooruPost(A: TJsonObject): IBooruPost;
+var
+  LIdStr: IIdString;
 begin
+  if Assigned(A.Get('IdStr')) then
+    Result := TBooruPostWithStrId.Create
+  else
+    Result := TBooruPostBase.Create;
+
   Result := TBooruPostBase.Create;
   with Result do begin
     Id := A.GetValue<TBooruId>('Id');
@@ -119,6 +126,10 @@ begin
       DownScore := A.GetValue<integer>('DownScore');
     end;
 
+    { v0.2.0 }
+    if Supports(Result, IIdString, LIdStr) then
+      LIdStr.Id := A.GetValue<string>('IdStr');
+
   end;
 end;
 
@@ -151,12 +162,22 @@ begin
 end;
 
 class function TJsonMom.FromJsonIBooruThumb(A: TJsonObject): IBooruThumb;
+var
+  LIdStr: IIdString;
 begin
-  Result := TBooruThumbBase.Create;
+  if Assigned(A.Get('IdStr')) then
+    Result := TBooruThumbWithStrId.Create
+  else
+    Result := TBooruThumbBase.Create;
+
   with Result do begin
     Id := A.GetValue<int64>('Id');
     Thumbnail := A.GetValue<string>('Thumbnail');
     TagsValues := TJsonMom.FromJsonAr(A.GetValue('TagsValues') as TJsonArray);
+
+    { v0.2.0 }
+    if Supports(Result, IIdString, LIdStr) then
+      LIdStr.Id := A.GetValue<string>('IdStr');
   end;
 end;
 
@@ -170,6 +191,8 @@ begin
 end;
 
 class function TJsonMom.ToJson(AVal: IBooruPost): TJsonObject;
+var
+  LIdStr: IIdString;
 begin
   Result := TJsonObject.Create;
   with Result do begin
@@ -209,6 +232,10 @@ begin
     AddPair('ApproverId', AVal.ApproverId);
     AddPair('UpScore', AVal.UpScore);
     AddPair('DownScore', AVal.DownScore);
+
+    { v0.2.0 }
+    if Supports(AVal, IIdString, LIdStr) then
+      AddPair('IdStr', LIdStr.Id);
   end;
 end;
 
@@ -238,12 +265,18 @@ begin
 end;
 
 class function TJsonMom.ToJson(AVal: IBooruThumb): TJsonObject;
+var
+  LIdStr: IIdString;
 begin
   Result := TJsonObject.Create;
   with Result do begin
     AddPair('Id', AVal.Id);
     AddPair('Thumbnail', AVal.Thumbnail);
     AddPair('TagsValues', TJsonMom.ToJsonAr(AVal.TagsValues));
+
+    { v0.2.0 }
+    if Supports(AVal, IIdString, LIdStr) then
+      AddPair('IdStr', LIdStr.Id);
   end;
 end;
 
