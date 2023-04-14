@@ -4,12 +4,13 @@ interface
 uses
   Classes, Types, SysUtils, System.Generics.Collections,
   BooruScraper.Interfaces, BooruScraper.BaseTypes, BooruScraper.Parser.Utils,
-  HtmlParserEx, NetEncoding;
+  HtmlParserEx, NetEncoding, BooruScraper.Urls;
 
 type
 
   TBepisDbParser = Class(TBooruParser)
     private
+      const URL_FIX_HOST = DBBEPISMOE_URL;
       class procedure ParseTagsAndThumbnail(AElement: IHtmlElement; AItem: IBooruPost);
     public
       class function ParsePostsFromPage(const ASource: string): TBooruThumbAr; override;
@@ -63,7 +64,7 @@ begin
     { Content URL - Playcard }
     var LBtnDownload := FindXByClass(LDoc, 'btn-primary');
     if Assigned(LBtnDownload) then
-      Result.ContentUrl := LBtnDownload.Attrs['href'];
+      Result.ContentUrl := URL_FIX_HOST + LBtnDownload.Attrs['href'];
   end;
 end;
 
@@ -102,7 +103,7 @@ begin
         { Content URL - Playcard }
         var LBtnDownload := FindXByClass(LThumb, 'btn-primary');
         if Assigned(LBtnDownload) then
-          LItem.ContentUrl := LBtnDownload.Attrs['href'];
+          LItem.ContentUrl := URL_FIX_HOST + LBtnDownload.Attrs['href'];
 
         Result := Result + [LItem];
       end;
@@ -139,7 +140,7 @@ begin
     { Thumbnail }
     var LImg := FindXFirst(LPicture, '//img');
     if Assigned(LImg) then
-      AItem.Thumbnail := LImg.Attrs['src'];
+      AItem.Thumbnail := URL_FIX_HOST + LImg.Attrs['src'];
   end;
 end;
 
