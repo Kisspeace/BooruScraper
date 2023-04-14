@@ -35,7 +35,9 @@ uses
   BooruScraper.Parser.API.danbooru in '..\source\BooruScraper.Parser.API.danbooru.pas',
   BooruScraper.Serialize.Json in '..\source\BooruScraper.Serialize.Json.pas',
   BooruScraper.Parser.BepisDb in '..\source\BooruScraper.Parser.BepisDb.pas',
-  BooruScraper.Client.BepisDb in '..\source\BooruScraper.Client.BepisDb.pas';
+  BooruScraper.Client.BepisDb in '..\source\BooruScraper.Client.BepisDb.pas',
+  BooruScraper.Parser.Kenzatouk in '..\source\BooruScraper.Parser.Kenzatouk.pas',
+  BooruScraper.Client.KenzatoUk in '..\source\BooruScraper.Client.KenzatoUk.pas';
 
 var
   Client: IBooruClient;
@@ -105,8 +107,14 @@ begin
 end;
 
 procedure PrintThumb(A: IBooruThumb);
+var
+  LIdStr: IIdString;
 begin
-  PVal('Id', A.Id.ToString);
+  if Supports(A, IIdString, LIdStr) then
+    PVal('Id', LIdStr.Id)
+  else
+    PVal('Id', A.Id.ToString);
+
   PVal('Tags [' + Length(A.TagsValues).ToString + ']', String.Join(' ', A.TagsValues));
   PVal('Thumbnail', A.Thumbnail);
   pdelim;
@@ -290,8 +298,9 @@ var
 begin
   try
     { https://lolibooru.moe/help/api }
-    Client := BooruScraper.NewClient('https://rule34.xxx');
-//    Client.Host := 'https://hgoon.booru.org';
+//    Client := BooruScraper.NewClient('');
+    Client := BooruScraper.NewClientKenzatoUk;
+//    Client.Host := '';
 //
     if (Client.Host <> DANBOORUDONMAIUS_URL)
     and (Client.Host <> DBBEPISMOE_URL) then
@@ -301,7 +310,7 @@ begin
       LAllContentSwitch.EnableAllContent := True;
 //
     TestClient(Client, '', True);
-//    TestParser(Client.BooruParser, 'dbbepismoe');
+//    TestParser(TKenzatoUkParser, 'kenzatouk');
 
     Readln;
   except

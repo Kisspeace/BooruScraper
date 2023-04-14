@@ -32,6 +32,8 @@ const
   DBBEPISMOE_URL = 'https://db.bepis.moe';
   /// <summary>Base url for hgoon.booru.org.</summary>
   HGOONBOORUORG_URL = 'https://hgoon.booru.org';
+  /// <summary>Base url for kenzato.uk/booru.</summary>
+  KENZATOUKBOORU_URL = 'https://kenzato.uk/booru';
 
 implementation
 

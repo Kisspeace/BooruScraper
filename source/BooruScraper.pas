@@ -13,6 +13,7 @@ uses
   BooruScraper.Client.API.TbibOrg,
   BooruScraper.Client.API.danbooru,
   BooruScraper.Client.BepisDb,
+  BooruScraper.Client.KenzatoUk,
   BooruScraper.Parser.rule34xxx,
   BooruScraper.Parser.gelbooru,
   BooruScraper.Parser.Realbooru,
@@ -20,7 +21,8 @@ uses
   BooruScraper.Parser.rule34PahealNet,
   BooruScraper.Parser.API.TbibOrg,
   BooruScraper.Parser.API.danbooru,
-  BooruScraper.Parser.BepisDb;
+  BooruScraper.Parser.BepisDb,
+  BooruScraper.Parser.Kenzatouk;
 
   /// <summary>Returns client for given URL, or returns Nil when site not supported.</summary>
   function NewClient(const AUrl: string): IBooruClient; overload;
@@ -56,6 +58,8 @@ uses
   function NewClientBepisDb: IBepisDbClient;
   /// <summary>Client for <a href="https://hgoon.booru.org">hgoon.booru.org</a></summary>
   function NewClientHgoon: IBooruClient;
+  /// <summary>Client for <a href="https://kenzato.uk/booru">kenzato.uk/booru</a></summary>
+  function NewClientKenzatoUk: IKenzatoUkClient;
 
 
 implementation
@@ -90,6 +94,8 @@ begin
     Result := NewClientBepisDb
   else if HGOONBOORUORG_URL = AUrl then
     Result := NewClientHgoon
+  else if KENZATOUKBOORU_URL = AUrl then
+    Result := NewClientKenzatoUk
   else
     Result := Nil;
 end;
@@ -171,6 +177,12 @@ end;
 function NewClientHgoon: IBooruClient;
 begin
   Result := NewClient(TGelbooruClient, TGelbooruParser, HGOONBOORUORG_URL);
+end;
+
+function NewClientKenzatoUk: IKenzatoUkClient;
+begin
+  Result := NewClient(TKenzatoUkClient, TKenzatoUkParser, KENZATOUKBOORU_URL)
+    as IKenzatoUkClient;
 end;
 
 end.
