@@ -98,6 +98,7 @@ var
           LTmp := LTmps[0];
 
         if Assigned(LTmp) then begin
+//          writeln(QuotedStr(LTag.InnerText));
           LStr2 := LTmp.InnerText;
           LNewTag.Value := NormalizeTag(LStr2);
 
@@ -113,10 +114,18 @@ var
               LStr := OnlyDigits(LStr);
             end;
 
-            LNewTag.Count := StrToInt(LStr);
+            { Problem with parsing code like: }
+            { <span style="color: #a0a0a0;">? <a href="index.php?page=post&amp;s=list&amp;tags=<3"><3</a> 885</span> }
+            if not LStr.IsEmpty then begin
+              try
+                LNewTag.Count := StrToInt(LStr);
+                Result.Tags.Add(LNewTag);
+              finally
+
+              end;
+            end;
           end;
 
-          Result.Tags.Add(LNewTag);
         end;
       end;
     end;
