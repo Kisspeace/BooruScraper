@@ -111,9 +111,14 @@ class function TTbibOrgAPIParser.ParsePostFromPage(
 var
   LItems: TBooruThumbAr;
 begin
-  LItems := Self.ParsePostsFromPage(ASource);
-  if (Length(LItems) > 0) then
-    Supports(Litems[0], IBooruPost, Result);
+  try
+    LItems := Self.ParsePostsFromPage(ASource);
+    if (Length(LItems) > 0) then
+      Supports(Litems[0], IBooruPost, Result);
+  except
+    On E: Exception do
+      if not HandleExcept(E, 'ParsePostFromPage') then raise;
+  end;
 end;
 
 class function TTbibOrgAPIParser.ParsePostsFromPage(
@@ -125,16 +130,21 @@ var
   I: integer;
 begin
   Result := [];
-  LDoc := ParserHtml(ASource);
-  LPostsEl := FindXFirst(LDoc, '//posts');
+  try
+    LDoc := ParserHtml(ASource);
+    LPostsEl := FindXFirst(LDoc, '//posts');
 
-  if Assigned(LPostsEl) then
-  begin
-    for I := 0 to LPostsEl.ChildrenCount - 1 do begin
-      LElement := LPostsEl.Children[I];
-      if (LElement.TagName = 'POST') then
-        Result := Result + [Self.ParsePostFromNode(LElement)];
+    if Assigned(LPostsEl) then
+    begin
+      for I := 0 to LPostsEl.ChildrenCount - 1 do begin
+        LElement := LPostsEl.Children[I];
+        if (LElement.TagName = 'POST') then
+          Result := Result + [Self.ParsePostFromNode(LElement)];
+      end;
     end;
+  except
+    On E: Exception do
+      if not HandleExcept(E, 'ParsePostsFromPage') then raise;
   end;
 end;
 

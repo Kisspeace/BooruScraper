@@ -44,10 +44,15 @@ var
   LArray: ISuperArray;
   I: integer;
 begin
-  LArray := SA(ASource);
-  SetLength(Result, LArray.Length);
-  for I := 0 to LArray.Length - 1 do
-    Result[I] := Self.ParseCommentFromObject(LArray.O[I]);
+  try
+    LArray := SA(ASource);
+    SetLength(Result, LArray.Length);
+    for I := 0 to LArray.Length - 1 do
+      Result[I] := Self.ParseCommentFromObject(LArray.O[I]);
+  except
+    On E: Exception do
+      if not HandleExcept(E, 'ParseCommentsFromPostPage') then raise;
+  end;
 end;
 
 class function TDanbooruAPIParser.ParseDate(AObj: ISuperObject;
@@ -149,8 +154,13 @@ class function TDanbooruAPIParser.ParsePostFromPage(
 var
   LObj: ISuperObject;
 begin
-  LObj := SO(Asource);
-  Result := Self.ParsePostFromObject(LObj);
+  try
+    LObj := SO(Asource);
+    Result := Self.ParsePostFromObject(LObj);
+  except
+    On E: Exception do
+      if not HandleExcept(E, 'ParsePostFromPage') then raise;
+  end;
 end;
 
 class function TDanbooruAPIParser.ParsePostsFromPage(
@@ -159,10 +169,15 @@ var
   LArray: ISuperArray;
   I: integer;
 begin
-  LArray := SA(ASource);
-  SetLength(Result, LArray.Length);
-  for I := 0 to LArray.Length - 1 do
-    Result[I] := Self.ParsePostFromObject(LArray.O[I]);
+  try
+    LArray := SA(ASource);
+    SetLength(Result, LArray.Length);
+    for I := 0 to LArray.Length - 1 do
+      Result[I] := Self.ParsePostFromObject(LArray.O[I]);
+  except
+    On E: Exception do
+      if not HandleExcept(E, 'ParsePostsFromPage') then raise;
+  end;
 end;
 
 end.

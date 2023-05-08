@@ -44,8 +44,16 @@ uses
 var
   Client: IBooruClient;
 
-procedure SetWebClient(AClient: TNetHttpClient);
+procedure SetWebClient(AClient: TNetHttpClient; AHost: string = ''; AKeepCompatibility: boolean = True);
+var
+  LProblemHost: boolean;
 begin
+  LProblemHost :=
+       (AHost = DANBOORUDONMAIUS_URL)
+    or (AHost = DBBEPISMOE_URL);
+
+  if LProblemHost and AkeepCompatibility then exit;
+
   with AClient do begin
     AutomaticDecompression := [THttpCompressionMethod.Any];
     AllowCookies := false;
@@ -238,28 +246,38 @@ begin
   Writeln('END ---------------------------');
 end;
 
-procedure TestClient(AClient: IBooruClient; ARequest: string = ''; ATestClone: boolean = True);
+procedure TestClient(AClient: IBooruClient; ARequest: string = ''; ATestClone: boolean = True; AFullOutput: boolean = True);
 var
   LThumbs: TBooruThumbAr;
   LPost: IBooruPost;
 begin
+  LPost := Nil;
   LThumbs := AClient.GetPosts(ARequest, 0, 40);
-  PrintThumbs(LThumbs);
+  if AFullOutput then PrintThumbs(LThumbs);
 
   if ATestClone and (Length(LThumbs) > 0) then
     TestClone(LThumbs[0]);
 
-  writeln('');
+  if AFullOutput then writeln('');
 
   if Length(LThumbs) > 0 then begin
     LPost := AClient.GetPost(LThumbs[0]);
-    PrintPost(LPost);
+    if AFullOutput then PrintPost(LPost);
     if Assigned(LPost) and ATestClone then
       TestClone(LPost);
 
-    writeln('');
+    if AFullOutput then writeln('');
   end;
 
+  if not AFullOutput then
+  begin
+    var LId: int64 := -1;
+    if Assigned(LPost) then Lid := LPost.Id;
+    writeln(Format(
+      'got %d thumbs and post with id: %d',
+      [Length(lThumbs), LId]
+    ));
+  end;
 end;
 
 procedure TestBeforeException(AClient: IBooruClient; AFetchPosts: boolean = True; ARequest: string = ''; AStartPage: integer = BOORU_FIRSTPAGE);
@@ -345,29 +363,71 @@ begin
   end;
 end;
 
+procedure TestAllClients;
+var
+  I: integer;
+  LClients: TArray<IBooruClient>;
+begin
+  LClients := [
+    BooruScraper.NewClientRule34xxx,
+    BooruScraper.NewClientGelbooru,
+    BooruScraper.NewClientRealbooru,
+    BooruScraper.NewClientRule34us,
+    BooruScraper.NewClientRule34PahealNet,
+    BooruScraper.NewClientXbooru,
+    BooruScraper.NewClientHypnohubnet,
+    BooruScraper.NewClientTbib,
+    BooruScraper.NewClientDonmaiUs,
+    BooruScraper.NewClientBleachbooru,
+    BooruScraper.NewClientAllTheFallen,
+    BooruScraper.NewClientIllusioncards,
+    BooruScraper.NewClientHgoon,
+    BooruScraper.NewClientBepisDb,
+    BooruScraper.NewClientKenzatoUk
+  ];
+
+  Writeln('Start test of ' + Length(LClients).ToString + ' clients:');
+  for I := 0 to High(LClients) do
+  begin
+    var C := LClients[I];
+    var LStr: string := C.Host;
+    LStr := LStr.Substring(8); { trim https:// }
+    Write(Format(
+      '[%d] %s (%s, %s): ',
+      [I, LStr, (C as TObject).ClassName, C.BooruParser.ClassName])
+    );
+
+    SetWebClient(TBooruClientBase(C).Client, C.Host);
+    try
+      TestClient(C, '', false, False);
+    except
+      On E: Exception do Writeln(E.ClassName + ': ' + E.Message);
+    end;
+//    Writeln('');
+  end;
+end;
+
 var
   LPost: IBooruPost;
   LPosts: TBooruPostAr;
   LThumbs: TBooruThumbAr;
   LAllContentSwitch: IEnableAllContent;
   I: integer;
+
 begin
   try
     { https://lolibooru.moe/help/api }
 //    Client := BooruScraper.NewClient('');
-    Client := BooruScraper.NewClientGelbooru;
+    Client := BooruScraper.NewClientDonmaiUs;
 //    Client.Host := '';
-
-    if (Client.Host <> DANBOORUDONMAIUS_URL)
-    and (Client.Host <> DBBEPISMOE_URL) then
-      SetWebClient(TBooruClientBase(Client).Client);
+    SetWebClient(TBooruClientBase(Client).Client, Client.Host);
 
     if Supports(Client, IEnableAllContent, LAllContentSwitch) then
       LAllContentSwitch.EnableAllContent := True;
 
+    TestAllClients;
 //    TestBeforeException(Client, True, 'video');
-    TestClient(Client, '', True);
-//    getPost(Client, 8523532); readln;
+//    TestClient(Client, '', True);
 //    TestParser(Client.BooruParser, 'gelbooru');
 
     Readln;

@@ -43,28 +43,33 @@ var
   LThumb: IHtmlElement;
   LStr: string;
 begin
-  LDoc := ParserHtml(ASource);
-  LThumb := FindXById(LDoc, 'thumbnail-container');
-  if Assigned(LThumb) then
-  begin
-    Result := TBooruPostBase.Create;
-    ParseTagsAndThumbnail(LThumb, Result);
+  try
+    LDoc := ParserHtml(ASource);
+    LThumb := FindXById(LDoc, 'thumbnail-container');
+    if Assigned(LThumb) then
+    begin
+      Result := TBooruPostBase.Create;
+      ParseTagsAndThumbnail(LThumb, Result);
 
-    { Post Id }
-    LHead := FindXFirst(LDoc, '//head');
-    if Assigned(LHead) then begin
-      var LUrlProp := FindMetaProperty(LHead, 'og:url');
-      if Assigned(LUrlProp) then begin
-        LStr := LUrlProp.Attrs['content'];
-        LStr := Trim(GetAfter(LStr, 'view/'));
-        Result.Id := StrToInt64(LStr);
+      { Post Id }
+      LHead := FindXFirst(LDoc, '//head');
+      if Assigned(LHead) then begin
+        var LUrlProp := FindMetaProperty(LHead, 'og:url');
+        if Assigned(LUrlProp) then begin
+          LStr := LUrlProp.Attrs['content'];
+          LStr := Trim(GetAfter(LStr, 'view/'));
+          Result.Id := StrToInt64(LStr);
+        end;
       end;
-    end;
 
-    { Content URL - Playcard }
-    var LBtnDownload := FindXByClass(LDoc, 'btn-primary');
-    if Assigned(LBtnDownload) then
-      Result.ContentUrl := URL_FIX_HOST + LBtnDownload.Attrs['href'];
+      { Content URL - Playcard }
+      var LBtnDownload := FindXByClass(LDoc, 'btn-primary');
+      if Assigned(LBtnDownload) then
+        Result.ContentUrl := URL_FIX_HOST + LBtnDownload.Attrs['href'];
+    end;
+  except
+    On E: Exception do
+      if not HandleExcept(E, 'ParsePostFromPage') then raise;
   end;
 end;
 
@@ -79,35 +84,40 @@ var
   LStr: string;
   I, N: integer;
 begin
-  LDoc := ParserHtml(ASource);
-  LThumbContainer := FindXById(LDoc, 'inner-card-body');
+  try
+    LDoc := ParserHtml(ASource);
+    LThumbContainer := FindXById(LDoc, 'inner-card-body');
 
-  if Assigned(LThumbContainer) then
-  begin
-    LThumbs := FindAllByClass(LDoc, 'card-block');
-    for I := 0 to LThumbs.Count - 1 do
+    if Assigned(LThumbContainer) then
     begin
-      LThumb := LThumbs[I];
-      LTmp := FindXFirst(LThumb, '//a');
+      LThumbs := FindAllByClass(LDoc, 'card-block');
+      for I := 0 to LThumbs.Count - 1 do
+      begin
+        LThumb := LThumbs[I];
+        LTmp := FindXFirst(LThumb, '//a');
 
-      if Assigned(LTmp) then begin
-        var LItem: IBooruPost := TBooruPostBase.Create;
+        if Assigned(LTmp) then begin
+          var LItem: IBooruPost := TBooruPostBase.Create;
 
-        { Item id }
-        LStr := LTmp.Attrs['href'];
-        LStr := Trim(GetAfter(LStr, 'view/'));
-        LItem.Id := StrToInt64(LStr);
+          { Item id }
+          LStr := LTmp.Attrs['href'];
+          LStr := Trim(GetAfter(LStr, 'view/'));
+          LItem.Id := StrToInt64(LStr);
 
-        ParseTagsAndThumbnail(LThumb, LItem);
+          ParseTagsAndThumbnail(LThumb, LItem);
 
-        { Content URL - Playcard }
-        var LBtnDownload := FindXByClass(LThumb, 'btn-primary');
-        if Assigned(LBtnDownload) then
-          LItem.ContentUrl := URL_FIX_HOST + LBtnDownload.Attrs['href'];
+          { Content URL - Playcard }
+          var LBtnDownload := FindXByClass(LThumb, 'btn-primary');
+          if Assigned(LBtnDownload) then
+            LItem.ContentUrl := URL_FIX_HOST + LBtnDownload.Attrs['href'];
 
-        Result := Result + [LItem];
+          Result := Result + [LItem];
+        end;
       end;
     end;
+  except
+    On E: Exception do
+      if not HandleExcept(E, 'ParsePostsFromPage') then raise;
   end;
 end;
 

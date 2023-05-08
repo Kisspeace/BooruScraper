@@ -2,7 +2,8 @@
 
 interface
 uses
-  Classes, Types, SysUtils, System.Generics.Collections;
+  Classes, Types, SysUtils, System.Generics.Collections,
+  BooruScraper.Exceptions;
 
 const
   BOORU_FIRSTPAGE = 0;
@@ -253,6 +254,14 @@ type
 
   /// <summary>Interface for all compatible parsers.</summary>
   TBooruParser = Class
+    protected
+      ///<summary>
+      ///except
+      ///  On E: Exception do
+      ///   if not HandleExcept(E, 'MethodName') then raise;
+      ///end;
+      ///</summary>
+      class function HandleExcept(E: Exception; AMethodName: string): boolean;
     public
       /// <summary>Parse thumbnail items from HTML page.</summary>
       class function ParsePostsFromPage(const ASource: string): TBooruThumbAr; virtual; abstract;
@@ -319,6 +328,20 @@ begin
       Result[I] := T(LRes.Clone);
     end;
   end;
+end;
+
+{ TBooruParser }
+
+class function TBooruParser.HandleExcept(E: Exception; AMethodName: string): boolean;
+begin
+  if not (E is EBooruScraperException) then
+  begin
+    Result := True;
+    Raise EBooruScraperParsingException.CreateFmt(
+      '%s ~ %s ~ %s: %s',
+      [E.ClassName, Self.ClassName, AMethodName, E.Message]
+    );
+  end else Result := False;
 end;
 
 end.

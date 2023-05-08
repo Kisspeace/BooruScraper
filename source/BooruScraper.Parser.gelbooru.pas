@@ -71,12 +71,8 @@ begin
       end;
     end;
   except
-    On EBooruScraperParsingException do Raise;
     On E: Exception do
-      Raise EBooruScraperParsingException.CreateFmt(
-        '%s ~ %s ~ ParsePostFromPage: %s',
-        [E.ClassName, Self.ClassName, E.Message]
-      );
+      if not HandleExcept(E, 'ParsePostsFromPage') then raise;
   end;
 end;
 
@@ -199,12 +195,8 @@ begin
 
     Result.Comments.AddRange(ParseCommentsFromPostPage(LDoc));
   except
-    On EBooruScraperParsingException do Raise;
     On E: Exception do
-      Raise EBooruScraperParsingException.CreateFmt(
-        '%s ~ %s ~ ParsePostFromPage: %s',
-        [E.ClassName, Self.ClassName, E.Message]
-      );
+     if not HandleExcept(E, 'ParsePostFromPage') then raise;
   end;
 end;
 
@@ -279,12 +271,8 @@ begin
       Result := Result + [LNewComment];
     end;
   except
-    On EBooruScraperParsingException do Raise;
     On E: Exception do
-      Raise EBooruScraperParsingException.CreateFmt(
-        '%s ~ %s ~ ParseCommentsFromPostPage: %s',
-        [E.ClassName, Self.ClassName, E.Message]
-      );
+     if not HandleExcept(E, 'ParseCommentsFromPostPage') then raise;
   end;
 end;
 

@@ -4,7 +4,7 @@ interface
 uses
   Classes, Types, SysUtils, System.Generics.Collections,
   BooruScraper.Interfaces, BooruScraper.BaseTypes, BooruScraper.Parser.Utils,
-  HtmlParserEx, NetEncoding;
+  HtmlParserEx, NetEncoding, BooruScraper.Exceptions;
 
 type
 
@@ -57,53 +57,58 @@ var
 
 begin
   Result := TBooruPostBase.Create;
-  LDoc := ParserHtml(ASource);
-  LImageContainer := FindXByClass(LDoc, 'imageContainer');
-  if Assigned(LImageContainer) then begin
+  try
+    LDoc := ParserHtml(ASource);
+    LImageContainer := FindXByClass(LDoc, 'imageContainer');
+    if Assigned(LImageContainer) then begin
 
-    { ContentUrl (image) }
-    var LImage := FindXById(LImageContainer, 'image');
-    if Assigned(LImage) then begin
+      { ContentUrl (image) }
+      var LImage := FindXById(LImageContainer, 'image');
+      if Assigned(LImage) then begin
 
-      Result.ContentUrl := LImage.Attributes['src'];
+        Result.ContentUrl := LImage.Attributes['src'];
 
-    end else begin
+      end else begin
 
-      { ContentUrl (video) }
-      var LVid := FindXById(LImageContainer, 'gelcomVideoPlayer');
-      if Assigned(LVid) then begin
-        var LSource := LVid.FindX('//source');
-        if LSource.Count > 0 then
-          Result.ContentUrl := LSource[0].Attributes['src'];
-      end;
-
-    end;
-
-    { Tags }
-    var LTagContainer := FindXById(LImageContainer, 'tagLink');
-    if Assigned(LTagContainer) then begin
-
-      var LTags := LTagContainer.FindX('//a');
-
-      for I := 0 to LTags.Count - 1 do begin
-        var LTag := LTags.Items[I];
-
-        if (LTag.Attributes['class'] = '') then
-          continue;
-
-        var LNewTag: IBooruTag := TBooruTagBase.Create;
-
-        LNewTag.Kind := _GetTagTypeByClass(LTag.Attributes['class']);
-        LNewTag.Value := NormalizeTag(LTag.Text);
-        Result.Tags.Add(LNewTag);
+        { ContentUrl (video) }
+        var LVid := FindXById(LImageContainer, 'gelcomVideoPlayer');
+        if Assigned(LVid) then begin
+          var LSource := LVid.FindX('//source');
+          if LSource.Count > 0 then
+            Result.ContentUrl := LSource[0].Attributes['src'];
+        end;
 
       end;
 
+      { Tags }
+      var LTagContainer := FindXById(LImageContainer, 'tagLink');
+      if Assigned(LTagContainer) then begin
+
+        var LTags := LTagContainer.FindX('//a');
+
+        for I := 0 to LTags.Count - 1 do begin
+          var LTag := LTags.Items[I];
+
+          if (LTag.Attributes['class'] = '') then
+            continue;
+
+          var LNewTag: IBooruTag := TBooruTagBase.Create;
+
+          LNewTag.Kind := _GetTagTypeByClass(LTag.Attributes['class']);
+          LNewTag.Value := NormalizeTag(LTag.Text);
+          Result.Tags.Add(LNewTag);
+
+        end;
+
+      end;
+
+      { Comments }
+      /// Maybe soon.
+
     end;
-
-    { Comments }
-    /// Maybe soon.
-
+  except
+    On E: Exception do
+      if not HandleExcept(E, 'ParsePostFromPage') then raise;
   end;
 end;
 
@@ -113,37 +118,42 @@ var
   LDoc: IHtmlElement;
   I: integer;
 begin
-  LDoc := ParserHtml(ASource);
-  var LThumbContainer := FindXByClass(LDoc, 'items');
-  if Assigned(LThumbContainer) then begin
+  try
+    LDoc := ParserHtml(ASource);
+    var LThumbContainer := FindXByClass(LDoc, 'items');
+    if Assigned(LThumbContainer) then begin
 
-     var LThumbs := FindAllByClass(LThumbContainer, 'col thumb');
-    for I := 0 to LThumbs.Count - 1 do begin
-      var LThumb := LThumbs[I];
-      var LRes: IBooruThumb := TBooruThumbBase.Create;
+       var LThumbs := FindAllByClass(LThumbContainer, 'col thumb');
+      for I := 0 to LThumbs.Count - 1 do begin
+        var LThumb := LThumbs[I];
+        var LRes: IBooruThumb := TBooruThumbBase.Create;
 
-      { Id }
-      var LTmp: string := LThumb.Attributes['id'];
-      LTmp := Copy(LTmp, Low(LTmp) + 1, Length(LTmp)); { like p83455 }
-      LRes.Id := StrToInt64(LTmp);
+        { Id }
+        var LTmp: string := LThumb.Attributes['id'];
+        LTmp := Copy(LTmp, Low(LTmp) + 1, Length(LTmp)); { like p83455 }
+        LRes.Id := StrToInt64(LTmp);
 
-      { Thumbnail }
-      var LPrev := LThumb.FindX('//img').Items[0];
-      if Assigned(LPrev) then begin
+        { Thumbnail }
+        var LPrev := LThumb.FindX('//img').Items[0];
+        if Assigned(LPrev) then begin
 
-        { Thumbnail URL }
-        LRes.Thumbnail := LPrev.Attributes['src'];
+          { Thumbnail URL }
+          LRes.Thumbnail := LPrev.Attributes['src'];
 
-        { Tags }
-        LTmp := Trim(LPrev.Attributes['title']);
-        LRes.TagsValues := NormalizeTags(LTmp.Split([', '], TStringSplitOptions.ExcludeEmpty));
+          { Tags }
+          LTmp := Trim(LPrev.Attributes['title']);
+          LRes.TagsValues := NormalizeTags(LTmp.Split([', '], TStringSplitOptions.ExcludeEmpty));
+
+        end;
+
+        Result := Result + [LRes];
 
       end;
 
-      Result := Result + [LRes];
-
     end;
-
+  except
+    On E: Exception do
+      if not HandleExcept(E, 'ParsePostsFromPage') then raise;
   end;
 end;
 

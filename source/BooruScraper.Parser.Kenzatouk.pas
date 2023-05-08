@@ -4,7 +4,7 @@ interface
 uses
   Classes, Types, SysUtils, System.Generics.Collections,
   BooruScraper.Interfaces, BooruScraper.BaseTypes, BooruScraper.Parser.Utils,
-  HtmlParserEx, NetEncoding;
+  HtmlParserEx, NetEncoding, BooruScraper.Exceptions;
 
 type
 
@@ -41,30 +41,34 @@ var
   LHead: IHtmlElement;
   LStr: string;
 begin
-  LDoc := ParserHtml(ASource);
-  LImageCont := FindXById(LDoc, 'image-viewer-container');
+  try
+    LDoc := ParserHtml(ASource);
+    LImageCont := FindXById(LDoc, 'image-viewer-container');
 
-  if Assigned(LImageCont) then
-  begin
-    Result := TBooruPostWithStrId.Create;
-    LImg := FindXFirst(LImageCont, '//img');
-    if not Assigned(LImg) then Exit;
+    if Assigned(LImageCont) then
+    begin
+      Result := TBooruPostWithStrId.Create;
+      LImg := FindXFirst(LImageCont, '//img');
+      if not Assigned(LImg) then Exit;
 
-    { Content URL }
-    Result.Thumbnail := LImg.Attrs['src'];
-    Result.ContentUrl := Result.Thumbnail;
+      { Content URL }
+      Result.Thumbnail := LImg.Attrs['src'];
+      Result.ContentUrl := Result.Thumbnail;
 
-    { Post Id }
-    LHead := FindXFirst(LDoc, '//head');
-    if Assigned(LHead) then begin
-      var LUrlProp := FindMetaProperty(LHead, 'og:url');
-      if Assigned(LUrlProp) then begin
-        LStr := LUrlProp.Attrs['content'];
-        LStr := Trim(GetAfter(LStr, 'image/'));
-        (Result as IIdString).Id := LStr;
+      { Post Id }
+      LHead := FindXFirst(LDoc, '//head');
+      if Assigned(LHead) then begin
+        var LUrlProp := FindMetaProperty(LHead, 'og:url');
+        if Assigned(LUrlProp) then begin
+          LStr := LUrlProp.Attrs['content'];
+          LStr := Trim(GetAfter(LStr, 'image/'));
+          (Result as IIdString).Id := LStr;
+        end;
       end;
     end;
-
+  except
+    On E: Exception do
+      if not HandleExcept(E, 'ParsePostFromPage') then raise;
   end;
 end;
 
@@ -79,33 +83,38 @@ var
   LStr: string;
   I: integer;
 begin
-  LDoc := ParserHtml(ASource);
-  LThumbContainer := FindXById(LDoc, 'tabbed-content-group');
+  try
+    LDoc := ParserHtml(ASource);
+    LThumbContainer := FindXById(LDoc, 'tabbed-content-group');
 
-  if Assigned(LThumbContainer) then
-  begin
-    LThumbs := FindAllByClass(LThumbContainer, 'list-item');
-    for I := 0 to LThumbs.Count - 1 do
+    if Assigned(LThumbContainer) then
     begin
-      LThumb := LThumbs[I];
+      LThumbs := FindAllByClass(LThumbContainer, 'list-item');
+      for I := 0 to LThumbs.Count - 1 do
+      begin
+        LThumb := LThumbs[I];
 
-      { Id (string) }
-      LStr := LThumb.Attrs['data-id'];
-      if LStr.IsEmpty then continue;
-      var LNewItem: IBooruPost := TBooruPostWithStrId.Create;
-      (LNewItem as IIdString).Id := LStr;
+        { Id (string) }
+        LStr := LThumb.Attrs['data-id'];
+        if LStr.IsEmpty then continue;
+        var LNewItem: IBooruPost := TBooruPostWithStrId.Create;
+        (LNewItem as IIdString).Id := LStr;
 
-      { Thumbnail (also Content URL) }
-      LTmp := FindXByClass(LThumb, 'image-container');
-      if Assigned(LTmp) then begin
-        LTmp := FindXFirst(LTmp, '//img');
-        if Assigned(LTmp) then
-          LNewItem.Thumbnail := LTmp.Attrs['src'];
-          LNewItem.ContentUrl := LNewItem.Thumbnail;
+        { Thumbnail (also Content URL) }
+        LTmp := FindXByClass(LThumb, 'image-container');
+        if Assigned(LTmp) then begin
+          LTmp := FindXFirst(LTmp, '//img');
+          if Assigned(LTmp) then
+            LNewItem.Thumbnail := LTmp.Attrs['src'];
+            LNewItem.ContentUrl := LNewItem.Thumbnail;
+        end;
+
+        Result := Result + [LNewItem];
       end;
-
-      Result := Result + [LNewItem];
     end;
+  except
+    On E: Exception do
+      if not HandleExcept(E, 'ParsePostsFromPage') then raise;
   end;
 end;
 
