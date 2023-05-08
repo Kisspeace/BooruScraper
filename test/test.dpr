@@ -14,6 +14,7 @@ uses
   Net.HttpClientComponent,
   System.JSON,
   System.Diagnostics,
+  DateUtils,
   BooruScraper.Interfaces in '..\source\BooruScraper.Interfaces.pas',
   BooruScraper.ClientBase in '..\source\BooruScraper.ClientBase.pas',
   BooruScraper.Client.CompatibleGelbooru in '..\source\BooruScraper.Client.CompatibleGelbooru.pas',
@@ -37,7 +38,8 @@ uses
   BooruScraper.Parser.BepisDb in '..\source\BooruScraper.Parser.BepisDb.pas',
   BooruScraper.Client.BepisDb in '..\source\BooruScraper.Client.BepisDb.pas',
   BooruScraper.Parser.Kenzatouk in '..\source\BooruScraper.Parser.Kenzatouk.pas',
-  BooruScraper.Client.KenzatoUk in '..\source\BooruScraper.Client.KenzatoUk.pas';
+  BooruScraper.Client.KenzatoUk in '..\source\BooruScraper.Client.KenzatoUk.pas',
+  BooruScraper.Exceptions in '..\source\BooruScraper.Exceptions.pas';
 
 var
   Client: IBooruClient;
@@ -260,6 +262,52 @@ begin
 
 end;
 
+procedure TestBeforeException(AClient: IBooruClient; AFetchPosts: boolean = True; ARequest: string = ''; AStartPage: integer = BOORU_FIRSTPAGE);
+var
+  LThumbs: TBooruThumbAr;
+  LThumb: IBooruThumb;
+  LPost: IBooruPost;
+  LPage: integer;
+  LCount: integer;
+begin
+  Writeln('TestBeforeException: ' + AClient.Host + ' ' + ARequest);
+  LPage := AStartPage;
+  while TRUE do
+  begin
+    try
+      LThumbs := Nil;
+      LThumbs := AClient.GetPosts(ARequest, LPage);
+    except
+      on E: Exception do begin
+        Writeln('Get thumbs: ' + E.ClassName + ': ' + E.Message);
+        break;
+      end;
+    end;
+
+    LCount := Length(LThumbs);
+    Writeln(Now.ToString + ': fetched ' + LCount.ToString + ' thumbs on Page: ' + LPage.ToString + '.');
+
+    if AFetchPosts then
+    begin
+      for LThumb in LThumbs do
+      begin
+        Writeln(Now.ToString + ': Trying to get post: ' + LThumb.Id.ToString);
+        try
+          LPost := AClient.GetPost(LThumb);
+        except
+          on E: Exception do begin
+            Writeln('Get post: ' + LThumb.Id.ToString + ' ~ ' + E.ClassName + ': ' + E.Message);
+            break;
+          end;
+        end;
+      end;
+    end;
+
+    if LCount < 1 then break;
+  end;
+  Writeln('Test fin.')
+end;
+
 function FileContent(AFilename: string): string;
 var
   Lstrings: TStrings;
@@ -277,16 +325,24 @@ procedure TestParser(AParser: TBooruParserClass; AFilePrefix: string);
 var
   LPost: IBooruPost;
   LThumbs: TBooruThumbAr;
+  LFilenameList, LFilenamePost: string;
 begin
   Writeln('PARSER TEST --------------------');
 
-  LThumbs := AParser.ParsePostsFromPage(FileContent('../../temp/' + AFilePrefix + '_list.html'));
-  PrintThumbs(LThumbs);
+  LFilenameList := '../../temp/' + AFilePrefix + '_list.html';
+  LFilenamePost := '../../temp/' + AFilePrefix + '_post.html';
 
-  LPost := AParser.ParsePostFromPage(FileContent('../../temp/' + AFilePrefix + '_post.html'));
-  PrintPost(LPost);
+  if fileexists(LFilenameList) then
+  begin
+    LThumbs := AParser.ParsePostsFromPage(FileContent(LFilenameList));
+    PrintThumbs(LThumbs);
+  end;
 
-  Writeln('PARSER TEST END ----------------');
+  if fileexists(LFilenamePost) then
+  begin
+    LPost := AParser.ParsePostFromPage(FileContent(LFilenamePost));
+    PrintPost(LPost);
+  end;
 end;
 
 var
@@ -299,18 +355,20 @@ begin
   try
     { https://lolibooru.moe/help/api }
 //    Client := BooruScraper.NewClient('');
-    Client := BooruScraper.NewClientKenzatoUk;
+    Client := BooruScraper.NewClientGelbooru;
 //    Client.Host := '';
-//
+
     if (Client.Host <> DANBOORUDONMAIUS_URL)
     and (Client.Host <> DBBEPISMOE_URL) then
       SetWebClient(TBooruClientBase(Client).Client);
-//
+
     if Supports(Client, IEnableAllContent, LAllContentSwitch) then
       LAllContentSwitch.EnableAllContent := True;
-//
+
+//    TestBeforeException(Client, True, 'video');
     TestClient(Client, '', True);
-//    TestParser(TKenzatoUkParser, 'kenzatouk');
+//    getPost(Client, 8523532); readln;
+//    TestParser(Client.BooruParser, 'gelbooru');
 
     Readln;
   except
