@@ -4,6 +4,7 @@ interface
 uses
   Classes, Types, SysUtils, System.Generics.Collections,
   BooruScraper.Interfaces, BooruScraper.BaseTypes, BooruScraper.Parser.Utils,
+  BooruScraper.Exceptions,
   HtmlParserEx, NetEncoding;
 
 type
@@ -27,46 +28,55 @@ var
   I: integer;
 begin
   LOldStyle := False;
-  LDoc := ParserHtml(ASource);
-  LThumbContainer := FindXByClass(LDoc, 'thumbnail-container');
-  if not Assigned(LThumbContainer) then begin
-    LThumbContainer := FindXByClass(LDoc, 'content'); { Gelbooru Beta 0.1.11 }
-    if Assigned(LThumbContainer) then
-      LOldStyle := True;
-  end;
+  try
+    LDoc := ParserHtml(ASource);
+    LThumbContainer := FindXByClass(LDoc, 'thumbnail-container');
+    if not Assigned(LThumbContainer) then begin
+      LThumbContainer := FindXByClass(LDoc, 'content'); { Gelbooru Beta 0.1.11 }
+      if Assigned(LThumbContainer) then
+        LOldStyle := True;
+    end;
 
-  if Assigned(LThumbContainer) then begin
+    if Assigned(LThumbContainer) then begin
 
-    if LOldStyle then
-      LThumbs := FindAllByClass(LThumbContainer, 'thumb')
-    else
-      LThumbs := FindAllByClass(LThumbContainer, 'thumbnail-preview');
+      if LOldStyle then
+        LThumbs := FindAllByClass(LThumbContainer, 'thumb')
+      else
+        LThumbs := FindAllByClass(LThumbContainer, 'thumbnail-preview');
 
-    for I := 0 to LThumbs.Count - 1 do begin
-      var LThumb := LThumbs[I];
-      var LRes: IBooruThumb := TBooruThumbBase.Create;
+      for I := 0 to LThumbs.Count - 1 do begin
+        var LThumb := LThumbs[I];
+        var LRes: IBooruThumb := TBooruThumbBase.Create;
 
-      { Id }
-      var LTmp: string := LThumb.FindX('//a')[0].Attributes['id'];
-      LTmp := OnlyDigits(LTmp); { like p4353455 }
-      LRes.Id := StrToInt64(LTmp);
+        { Id }
+        var LTmp: string := LThumb.FindX('//a')[0].Attributes['id'];
+        LTmp := OnlyDigits(LTmp); { like p4353455 }
+        LRes.Id := StrToInt64(LTmp);
 
-      { Thumbnail }
-      var LPrev := LThumb.FindX('//img').Items[0];
-      if Assigned(LPrev) then begin
+        { Thumbnail }
+        var LPrev := LThumb.FindX('//img').Items[0];
+        if Assigned(LPrev) then begin
 
-        { Thumbnail URL }
-        LRes.Thumbnail := LPrev.Attributes['src'];
+          { Thumbnail URL }
+          LRes.Thumbnail := LPrev.Attributes['src'];
 
-        { Tags }
-        LTmp := Trim(LPrev.Attributes['title']);
-        LRes.TagsValues := NormalizeTags(LTmp.Split([' '], TStringSplitOptions.ExcludeEmpty));
+          { Tags }
+          LTmp := Trim(LPrev.Attributes['title']);
+          LRes.TagsValues := NormalizeTags(LTmp.Split([' '], TStringSplitOptions.ExcludeEmpty));
+
+        end;
+
+        Result := Result + [LRes];
 
       end;
-
-      Result := Result + [LRes];
-
     end;
+  except
+    On EBooruScraperParsingException do Raise;
+    On E: Exception do
+      Raise EBooruScraperParsingException.CreateFmt(
+        '%s ~ %s ~ ParsePostFromPage: %s',
+        [E.ClassName, Self.ClassName, E.Message]
+      );
   end;
 end;
 
@@ -133,60 +143,69 @@ var
 
 begin
   Result := TBooruPostBase.Create;
-  LDoc := ParserHtml(ASource);
-  LOldStyle := False;
-  
-  { Tags }
-  LTagList := FindXById(LDoc, 'tag-list');
-  if Assigned(LTagList) then begin
-    ParseTags(FindAllByClass(LTagList, 'tag-type-artist'), TagArtist);
-    ParseTags(FindAllByClass(LTagList, 'tag-type-character'), TagCharacter);
-    ParseTags(FindAllByClass(LTagList, 'tag-type-copyright'), TagCopyright);
-    ParseTags(FindAllByClass(LTagList, 'tag-type-metadata'), TagMetadata);
-    ParseTags(FindAllByClass(LTagList, 'tag-type-general'), TagGeneral);
-  end else begin { Gelbooru Beta 0.1.11 }
-    LTagList := FindXById(LDoc, 'tag_list');
+  try
+    LDoc := ParserHtml(ASource);
+    LOldStyle := False;
+
+    { Tags }
+    LTagList := FindXById(LDoc, 'tag-list');
     if Assigned(LTagList) then begin
-      LOldStyle := True;
-      ParseTags(LTagList.FindX('//li'), TagGeneral);
-    end;
-  end;
-
-  if Assigned(LTagList) then begin
-    LStr :=  THTMLEncoding.HTML.Decode(LTagList.Text);
-
-    { Id }
-    LStr2 := Trim(GetBetween(LStr, 'Id:', 'Posted'));
-    Result.Id := StrToInt64(LStr2);
-
-    { Uploader username }
-    if LOldStyle then
-      LStr2 := Trim(GetBetween(LStr, 'By:', 'Size:'))
-    else
-      LStr2 := Trim(GetBetween(LStr, 'Uploader:', 'Size:'));
-    Result.Uploader := LStr2;
-
-    { Score }
-    try
-      LStr2 := Trim(GetBetween(LStr, 'Score: ', ' '));
-      LStr2 := OnlyDigits(LStr);
-      Result.Score := StrToInt(LStr2);
-    except
-
+      ParseTags(FindAllByClass(LTagList, 'tag-type-artist'), TagArtist);
+      ParseTags(FindAllByClass(LTagList, 'tag-type-character'), TagCharacter);
+      ParseTags(FindAllByClass(LTagList, 'tag-type-copyright'), TagCopyright);
+      ParseTags(FindAllByClass(LTagList, 'tag-type-metadata'), TagMetadata);
+      ParseTags(FindAllByClass(LTagList, 'tag-type-general'), TagGeneral);
+    end else begin { Gelbooru Beta 0.1.11 }
+      LTagList := FindXById(LDoc, 'tag_list');
+      if Assigned(LTagList) then begin
+        LOldStyle := True;
+        ParseTags(LTagList.FindX('//li'), TagGeneral);
+      end;
     end;
 
-    { Image sapmple }
-    var LImage := FindXById(LDoc, 'image');
-    if Assigned(LImage) then
-      Result.SampleUrl := LImage.Attributes['src'];
+    if Assigned(LTagList) then begin
+      LStr :=  THTMLEncoding.HTML.Decode(LTagList.Text);
 
-    { ContentUrl }
-    LTmp := FindByText(LTagList, 'Original image', True, True);
-    if Assigned(LTmp) then
-      Result.ContentUrl := LTmp.Attributes['href'];
+      { Id }
+      LStr2 := Trim(GetBetween(LStr, 'Id:', 'Posted'));
+      Result.Id := StrToInt64(LStr2);
+
+      { Uploader username }
+      if LOldStyle then
+        LStr2 := Trim(GetBetween(LStr, 'By:', 'Size:'))
+      else
+        LStr2 := Trim(GetBetween(LStr, 'Uploader:', 'Size:'));
+      Result.Uploader := LStr2;
+
+      { Score }
+      try
+        LStr2 := Trim(GetBetween(LStr, 'Score: ', ' '));
+        LStr2 := OnlyDigits(LStr);
+        Result.Score := StrToInt(LStr2);
+      except
+
+      end;
+
+      { Image sapmple }
+      var LImage := FindXById(LDoc, 'image');
+      if Assigned(LImage) then
+        Result.SampleUrl := LImage.Attributes['src'];
+
+      { ContentUrl }
+      LTmp := FindByText(LTagList, 'Original image', True, True);
+      if Assigned(LTmp) then
+        Result.ContentUrl := LTmp.Attributes['href'];
+    end;
+
+    Result.Comments.AddRange(ParseCommentsFromPostPage(LDoc));
+  except
+    On EBooruScraperParsingException do Raise;
+    On E: Exception do
+      Raise EBooruScraperParsingException.CreateFmt(
+        '%s ~ %s ~ ParsePostFromPage: %s',
+        [E.ClassName, Self.ClassName, E.Message]
+      );
   end;
-
-  Result.Comments.AddRange(ParseCommentsFromPostPage(LDoc));
 end;
 
 class function TGelbooruParser.ParseCommentsFromPostPage(ASource: IHtmlElement): TBooruCommentAr;
@@ -197,53 +216,75 @@ var
   LIdPos: integer;
 begin
   Result := [];
-  LAvas := FindAllByClass(ASource, 'commentAvatar');
-  for I := 0 to LAvas.Count - 1 do begin
-    var LNewComment: IBooruComment := TBooruCommentBase.Create;
-    var LComment := LAvas[I].Parent;
-    var LAvatar := LAvas[I];
-    var LBody := FindXByClass(LComment, 'commentBody');
+  try
+    LAvas := FindAllByClass(ASource, 'commentAvatar');
+    for I := 0 to LAvas.Count - 1 do begin
+      var LNewComment: IBooruComment := TBooruCommentBase.Create;
+      var LComment := LAvas[I].Parent;
+      var LAvatar := LAvas[I];
+      var LBody := FindXByClass(LComment, 'commentBody');
 
-    { Comment Author username }
-    try
-      LStr := Trim(LBody.FindX('//a/b')[0].Text);
-      LNewComment.Username := LStr;
-    except
+      { Comment Author username }
+      try
+        LStr := Trim(LBody.FindX('//a/b')[0].Text);
+        LNewComment.Username := LStr;
+      except
 
+      end;
+
+      if LBody.ChildrenCount >= 2 then
+      begin
+        LStr2 := LBody.Children[2].Text; // username commented at 2021-10-12 08:39:21 » #1111111
+
+        { Comment Id }
+        try
+          //N := LStr2.IndexOf('#') + 2; { why +2 ? }
+          N := LStr2.IndexOf('#');
+          LStr := OnlyDigits(LStr2.Substring(N));
+          LNewComment.Id := StrToInt64(LStr);
+        except
+
+        end;
+
+        { Comment Timestamp }
+        try
+          LStr := Trim(GetBetween(LStr2, ' commented at', '&'));
+          LNewComment.Timestamp := StrToDatetime(LStr, BOORU_TIME_FORMAT);
+        except
+
+        end;
+
+        { Comment score }
+        try
+          var LScore := FindXById(LComment, 'sc' + LNewComment.Id.ToString);
+          if Assigned(LScore) then begin
+            LStr := Trim(LScore.Text);
+            LNewComment.Score := StrToInt(LStr);
+          end;
+        except
+
+        end;
+      end;
+
+      { Comment text }
+      try
+        if LBody.ChildrenCount >= 5 then begin
+          LStr := LBody.Children[5].Text; // Comment text here
+          LNewComment.Text := Trim(THTMLEncoding.HTML.Decode(LStr));
+        end;
+      except
+
+      end;
+
+      Result := Result + [LNewComment];
     end;
-
-    LStr2 := LBody.Children[2].Text; // username commented at 2021-10-12 08:39:21 » #1111111
-
-    { Comment Id }
-    try
-      N := LStr2.IndexOf('#') + 2;
-      LStr := OnlyDigits(LStr2);
-      LNewComment.Id := StrToInt64(LStr);
-    except
-
-    end;
-
-    { Comment text }
-    try
-      LStr := LBody.Children[5].Text; // Comment text here
-      LNewComment.Text := Trim(THTMLEncoding.HTML.Decode(LStr));
-    except
-
-    end;
-
-    { Comment Timestamp }
-    try
-      LStr := Trim(GetBetween(LStr2, ' commented at', '&'));
-      LNewComment.Timestamp := StrToDatetime(LStr, BOORU_TIME_FORMAT);
-    except
-
-    end;
-
-    { Comment score }
-    LStr := Trim(FindXById(LComment, 'sc' + LNewComment.Id.ToString).Text);
-    LNewComment.Score := StrToInt(LStr);
-
-    Result := Result + [LNewComment];
+  except
+    On EBooruScraperParsingException do Raise;
+    On E: Exception do
+      Raise EBooruScraperParsingException.CreateFmt(
+        '%s ~ %s ~ ParseCommentsFromPostPage: %s',
+        [E.ClassName, Self.ClassName, E.Message]
+      );
   end;
 end;
 
