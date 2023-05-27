@@ -132,7 +132,18 @@ var
 begin
   Result := TBooruPostBase.Create;
   try
-    LDoc := ParserHtml(ASource);
+
+    { Fix: https://github.com/Kisspeace/NsfwBox/issues/8 }
+    var PROBLEM_SYMPTOM: string := '&amp;id=" ';
+    if (ASource.IndexOf(PROBLEM_SYMPTOM) <> -1) then
+    begin
+      var LPatchedSource := ASource.Replace(
+        PROBLEM_SYMPTOM, '&amp;id=',
+        [rfReplaceAll, rfIgnoreCase]);
+      LDoc := ParserHtml(LPatchedSource);
+    end else
+    { Fix end. }
+      LDoc := ParserHtml(ASource);
 
     { Tags }
     var LTagBar := FindXById(LDoc, 'tag-sidebar');
