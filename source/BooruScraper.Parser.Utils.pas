@@ -24,6 +24,9 @@ uses
   function FilterCharSet(const ASource: string; const AAllowChars: array of Char): string;
   function OnlyDigits(const ASource: string): string;
 
+  /// <summary>input like: "futa ass lesbian", output: "futa+ass+lesbian"</summaru>
+  function PrepareSearchReq(const ARequest: string): string;
+
 const
 
   BOORU_TIME_FORMAT: TFormatSettings = (
@@ -216,6 +219,11 @@ function OnlyDigits(const ASource: string): string;
 begin
   Result := FilterCharSet(ASource,
     ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
+end;
+
+function PrepareSearchReq(const ARequest: string): string;
+begin
+  Result := ARequest.Replace(' ', '+', [rfReplaceAll]).Trim;
 end;
 
 end.
