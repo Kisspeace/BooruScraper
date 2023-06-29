@@ -36,6 +36,7 @@ const
   KENZATOUKBOORU_URL = 'https://kenzato.uk/booru';
 
   E621NET_URL = 'https://e621.net';
+  E926NET_URL = 'https://e926.net';
 implementation
 
 end.

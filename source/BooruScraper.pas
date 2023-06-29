@@ -64,7 +64,7 @@ uses
   function NewClientKenzatoUk: IKenzatoUkClient;
   /// <summary>Client for <a href="https://e621.net">e621.net</a></summary>
   function NewClientE621: IBooruClient;
-
+  function NewClientE926: IBooruClient;
 
 implementation
 
@@ -102,6 +102,8 @@ begin
     Result := NewClientKenzatoUk
   else if E621NET_URL = AUrl then
     Result := NewClientE621
+  else if E926NET_URL = AUrl then
+    Result := NewClientE926
   else
     Result := Nil;
 end;
@@ -194,6 +196,11 @@ end;
 function NewClientE621: IBooruClient;
 begin
   Result := NewClient(Te621Client, Te621Parser, E621NET_URL);
+end;
+
+function NewClientE926: IBooruClient;
+begin
+  Result := NewClient(Te621Client, Te621Parser, E926NET_URL);
 end;
 
 end.
