@@ -10,16 +10,16 @@ uses
 type
 
   TGelbooruParser = Class(TBooruParser)
-    public
-      class function ParsePostsFromPage(const ASource: string): TBooruThumbAr; override;
-      class function ParsePostFromPage(const ASource: string): IBooruPost; override;
-      class function ParseCommentsFromPostPage(const ASource: string): TBooruCommentAr; overload; override;
-      class function ParseCommentsFromPostPage(ASource: IHtmlElement): TBooruCommentAr; overload;
+    protected
+      class function DoParsePostsFromPage(const ASource: string): TBooruThumbAr; override;
+      class function DoParsePostFromPage(const ASource: string): IBooruPost; override;
+      class function DoParseCommentsFromPostPage(const ASource: string): TBooruCommentAr; overload; override;
+      class function DoParseCommentsFromPostPage(ASource: IHtmlElement): TBooruCommentAr; overload;
   End;
 
 implementation
 
-class function TGelbooruParser.ParsePostsFromPage(const ASource: string): TBooruThumbAr;
+class function TGelbooruParser.DoParsePostsFromPage(const ASource: string): TBooruThumbAr;
 var
   LDoc: IHtmlElement;
   LThumbContainer: IHtmlElement;
@@ -28,55 +28,50 @@ var
   I: integer;
 begin
   LOldStyle := False;
-  try
-    LDoc := ParserHtml(ASource);
-    LThumbContainer := FindXByClass(LDoc, 'thumbnail-container');
-    if not Assigned(LThumbContainer) then begin
-      LThumbContainer := FindXByClass(LDoc, 'content'); { Gelbooru Beta 0.1.11 }
-      if Assigned(LThumbContainer) then
-        LOldStyle := True;
-    end;
+  LDoc := ParserHtml(ASource);
+  LThumbContainer := FindXByClass(LDoc, 'thumbnail-container');
+  if not Assigned(LThumbContainer) then begin
+    LThumbContainer := FindXByClass(LDoc, 'content'); { Gelbooru Beta 0.1.11 }
+    if Assigned(LThumbContainer) then
+      LOldStyle := True;
+  end;
 
-    if Assigned(LThumbContainer) then begin
+  if Assigned(LThumbContainer) then begin
 
-      if LOldStyle then
-        LThumbs := FindAllByClass(LThumbContainer, 'thumb')
-      else
-        LThumbs := FindAllByClass(LThumbContainer, 'thumbnail-preview');
+    if LOldStyle then
+      LThumbs := FindAllByClass(LThumbContainer, 'thumb')
+    else
+      LThumbs := FindAllByClass(LThumbContainer, 'thumbnail-preview');
 
-      for I := 0 to LThumbs.Count - 1 do begin
-        var LThumb := LThumbs[I];
-        var LRes: IBooruThumb := TBooruThumbBase.Create;
+    for I := 0 to LThumbs.Count - 1 do begin
+      var LThumb := LThumbs[I];
+      var LRes: IBooruThumb := TBooruThumbBase.Create;
 
-        { Id }
-        var LTmp: string := LThumb.FindX('//a')[0].Attributes['id'];
-        LTmp := OnlyDigits(LTmp); { like p4353455 }
-        LRes.Id := StrToInt64(LTmp);
+      { Id }
+      var LTmp: string := LThumb.FindX('//a')[0].Attributes['id'];
+      LTmp := OnlyDigits(LTmp); { like p4353455 }
+      LRes.Id := StrToInt64(LTmp);
 
-        { Thumbnail }
-        var LPrev := LThumb.FindX('//img').Items[0];
-        if Assigned(LPrev) then begin
+      { Thumbnail }
+      var LPrev := LThumb.FindX('//img').Items[0];
+      if Assigned(LPrev) then begin
 
-          { Thumbnail URL }
-          LRes.Thumbnail := LPrev.Attributes['src'];
+        { Thumbnail URL }
+        LRes.Thumbnail := LPrev.Attributes['src'];
 
-          { Tags }
-          LTmp := Trim(LPrev.Attributes['title']);
-          LRes.TagsValues := NormalizeTags(LTmp.Split([' '], TStringSplitOptions.ExcludeEmpty));
-
-        end;
-
-        Result := Result + [LRes];
+        { Tags }
+        LTmp := Trim(LPrev.Attributes['title']);
+        LRes.TagsValues := NormalizeTags(LTmp.Split([' '], TStringSplitOptions.ExcludeEmpty));
 
       end;
+
+      Result := Result + [LRes];
+
     end;
-  except
-    On E: Exception do
-      if not HandleExcept(E, 'ParsePostsFromPage') then raise;
   end;
 end;
 
-class function TGelbooruParser.ParsePostFromPage(const ASource: string): IBooruPost;
+class function TGelbooruParser.DoParsePostFromPage(const ASource: string): IBooruPost;
 var
   LDoc: IHtmlElement;
   I: integer;
@@ -139,68 +134,63 @@ var
 
 begin
   Result := TBooruPostBase.Create;
-  try
-    LDoc := ParserHtml(ASource);
-    LOldStyle := False;
+  LDoc := ParserHtml(ASource);
+  LOldStyle := False;
 
-    { Tags }
-    LTagList := FindXById(LDoc, 'tag-list');
+  { Tags }
+  LTagList := FindXById(LDoc, 'tag-list');
+  if Assigned(LTagList) then begin
+    ParseTags(FindAllByClass(LTagList, 'tag-type-artist'), TagArtist);
+    ParseTags(FindAllByClass(LTagList, 'tag-type-character'), TagCharacter);
+    ParseTags(FindAllByClass(LTagList, 'tag-type-copyright'), TagCopyright);
+    ParseTags(FindAllByClass(LTagList, 'tag-type-metadata'), TagMetadata);
+    ParseTags(FindAllByClass(LTagList, 'tag-type-general'), TagGeneral);
+  end else begin { Gelbooru Beta 0.1.11 }
+    LTagList := FindXById(LDoc, 'tag_list');
     if Assigned(LTagList) then begin
-      ParseTags(FindAllByClass(LTagList, 'tag-type-artist'), TagArtist);
-      ParseTags(FindAllByClass(LTagList, 'tag-type-character'), TagCharacter);
-      ParseTags(FindAllByClass(LTagList, 'tag-type-copyright'), TagCopyright);
-      ParseTags(FindAllByClass(LTagList, 'tag-type-metadata'), TagMetadata);
-      ParseTags(FindAllByClass(LTagList, 'tag-type-general'), TagGeneral);
-    end else begin { Gelbooru Beta 0.1.11 }
-      LTagList := FindXById(LDoc, 'tag_list');
-      if Assigned(LTagList) then begin
-        LOldStyle := True;
-        ParseTags(LTagList.FindX('//li'), TagGeneral);
-      end;
+      LOldStyle := True;
+      ParseTags(LTagList.FindX('//li'), TagGeneral);
     end;
-
-    if Assigned(LTagList) then begin
-      LStr :=  THTMLEncoding.HTML.Decode(LTagList.Text);
-
-      { Id }
-      LStr2 := Trim(GetBetween(LStr, 'Id:', 'Posted'));
-      Result.Id := StrToInt64(LStr2);
-
-      { Uploader username }
-      if LOldStyle then
-        LStr2 := Trim(GetBetween(LStr, 'By:', 'Size:'))
-      else
-        LStr2 := Trim(GetBetween(LStr, 'Uploader:', 'Size:'));
-      Result.Uploader := LStr2;
-
-      { Score }
-      try
-        LStr2 := Trim(GetBetween(LStr, 'Score: ', ' '));
-        LStr2 := OnlyDigits(LStr);
-        Result.Score := StrToInt(LStr2);
-      except
-
-      end;
-
-      { Image sapmple }
-      var LImage := FindXById(LDoc, 'image');
-      if Assigned(LImage) then
-        Result.SampleUrl := LImage.Attributes['src'];
-
-      { ContentUrl }
-      LTmp := FindByText(LTagList, 'Original image', True, True);
-      if Assigned(LTmp) then
-        Result.ContentUrl := LTmp.Attributes['href'];
-    end;
-
-    Result.Comments.AddRange(ParseCommentsFromPostPage(LDoc));
-  except
-    On E: Exception do
-     if not HandleExcept(E, 'ParsePostFromPage') then raise;
   end;
+
+  if Assigned(LTagList) then begin
+    LStr :=  THTMLEncoding.HTML.Decode(LTagList.Text);
+
+    { Id }
+    LStr2 := Trim(GetBetween(LStr, 'Id:', 'Posted'));
+    Result.Id := StrToInt64(LStr2);
+
+    { Uploader username }
+    if LOldStyle then
+      LStr2 := Trim(GetBetween(LStr, 'By:', 'Size:'))
+    else
+      LStr2 := Trim(GetBetween(LStr, 'Uploader:', 'Size:'));
+    Result.Uploader := LStr2;
+
+    { Score }
+    try
+      LStr2 := Trim(GetBetween(LStr, 'Score: ', ' '));
+      LStr2 := OnlyDigits(LStr);
+      Result.Score := StrToInt(LStr2);
+    except
+
+    end;
+
+    { Image sapmple }
+    var LImage := FindXById(LDoc, 'image');
+    if Assigned(LImage) then
+      Result.SampleUrl := LImage.Attributes['src'];
+
+    { ContentUrl }
+    LTmp := FindByText(LTagList, 'Original image', True, True);
+    if Assigned(LTmp) then
+      Result.ContentUrl := LTmp.Attributes['href'];
+  end;
+
+  Result.Comments.AddRange(DoParseCommentsFromPostPage(LDoc));
 end;
 
-class function TGelbooruParser.ParseCommentsFromPostPage(ASource: IHtmlElement): TBooruCommentAr;
+class function TGelbooruParser.DoParseCommentsFromPostPage(ASource: IHtmlElement): TBooruCommentAr;
 var
   LAvas: IHtmlElementList;
   I, N: integer;
@@ -276,12 +266,12 @@ begin
   end;
 end;
 
-class function TGelbooruParser.ParseCommentsFromPostPage(const ASource: string): TBooruCommentAr;
+class function TGelbooruParser.DoParseCommentsFromPostPage(const ASource: string): TBooruCommentAr;
 var
   LDoc: IHtmlElement;
 begin
   LDoc := ParserHtml(ASource);
-  Result := ParseCommentsFromPostPage(LDoc);
+  Result := DoParseCommentsFromPostPage(LDoc);
 end;
 
 end.

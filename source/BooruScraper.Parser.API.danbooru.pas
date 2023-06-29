@@ -9,11 +9,11 @@ uses
 type
 
   TDanbooruAPIParser = Class(TBooruParser)
-    public
-      class function ParsePostsFromPage(const ASource: string): TBooruThumbAr; override;
-      class function ParsePostFromPage(const ASource: string): IBooruPost; override;
+    protected
+      class function DoParsePostsFromPage(const ASource: string): TBooruThumbAr; override;
+      class function DoParsePostFromPage(const ASource: string): IBooruPost; override;
       class function ParsePostFromObject(A: ISuperObject): IBooruPost;
-      class function ParseCommentsFromPostPage(const ASource: string): TBooruCommentAr; override;
+      class function DoParseCommentsFromPostPage(const ASource: string): TBooruCommentAr; override;
       class function ParseCommentFromObject(A: ISuperObject): IBooruComment;
       { -------------------- }
       class function ParseDate(AObj: ISuperObject; AKey: string): TDateTime;
@@ -38,21 +38,16 @@ begin
   end;
 end;
 
-class function TDanbooruAPIParser.ParseCommentsFromPostPage(
+class function TDanbooruAPIParser.DoParseCommentsFromPostPage(
   const ASource: string): TBooruCommentAr;
 var
   LArray: ISuperArray;
   I: integer;
 begin
-  try
-    LArray := SA(ASource);
-    SetLength(Result, LArray.Length);
-    for I := 0 to LArray.Length - 1 do
-      Result[I] := Self.ParseCommentFromObject(LArray.O[I]);
-  except
-    On E: Exception do
-      if not HandleExcept(E, 'ParseCommentsFromPostPage') then raise;
-  end;
+  LArray := SA(ASource);
+  SetLength(Result, LArray.Length);
+  for I := 0 to LArray.Length - 1 do
+    Result[I] := Self.ParseCommentFromObject(LArray.O[I]);
 end;
 
 class function TDanbooruAPIParser.ParseDate(AObj: ISuperObject;
@@ -149,35 +144,25 @@ begin
   end;
 end;
 
-class function TDanbooruAPIParser.ParsePostFromPage(
+class function TDanbooruAPIParser.DoParsePostFromPage(
   const ASource: string): IBooruPost;
 var
   LObj: ISuperObject;
 begin
-  try
-    LObj := SO(Asource);
-    Result := Self.ParsePostFromObject(LObj);
-  except
-    On E: Exception do
-      if not HandleExcept(E, 'ParsePostFromPage') then raise;
-  end;
+  LObj := SO(Asource);
+  Result := Self.ParsePostFromObject(LObj);
 end;
 
-class function TDanbooruAPIParser.ParsePostsFromPage(
+class function TDanbooruAPIParser.DoParsePostsFromPage(
   const ASource: string): TBooruThumbAr;
 var
   LArray: ISuperArray;
   I: integer;
 begin
-  try
-    LArray := SA(ASource);
-    SetLength(Result, LArray.Length);
-    for I := 0 to LArray.Length - 1 do
-      Result[I] := Self.ParsePostFromObject(LArray.O[I]);
-  except
-    On E: Exception do
-      if not HandleExcept(E, 'ParsePostsFromPage') then raise;
-  end;
+  LArray := SA(ASource);
+  SetLength(Result, LArray.Length);
+  for I := 0 to LArray.Length - 1 do
+    Result[I] := Self.ParsePostFromObject(LArray.O[I]);
 end;
 
 end.

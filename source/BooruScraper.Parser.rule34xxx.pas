@@ -9,16 +9,16 @@ uses
 type
 
   TRule34xxxParser = Class(TBooruParser)
-    public
-      class function ParsePostsFromPage(const ASource: string): TBooruThumbAr; override;
-      class function ParsePostFromPage(const ASource: string): IBooruPost; override;
-      class function ParseCommentsFromPostPage(const ASource: string): TBooruCommentAr; overload; override;
-      class function ParseCommentsFromPostPage(ASource: IHtmlElement): TBooruCommentAr; overload;
+    protected
+      class function DoParsePostsFromPage(const ASource: string): TBooruThumbAr; override;
+      class function DoParsePostFromPage(const ASource: string): IBooruPost; override;
+      class function DoParseCommentsFromPostPage(const ASource: string): TBooruCommentAr; overload; override;
+      class function DoParseCommentsFromPostPage(ASource: IHtmlElement): TBooruCommentAr; overload;
   End;
 
 implementation
 
-class function TRule34xxxParser.ParsePostsFromPage(const ASource: string): TBooruThumbAr;
+class function TRule34xxxParser.DoParsePostsFromPage(const ASource: string): TBooruThumbAr;
 var
   LDoc: IHtmlElement;
   LImgList: IHtmlElement;
@@ -26,49 +26,44 @@ var
   I: integer;
 begin
   Result := [];
-  try
-    LDoc := ParserHtml(ASource);
-    LImages := FindAllByClass(LDoc, 'thumb');
+  LDoc := ParserHtml(ASource);
+  LImages := FindAllByClass(LDoc, 'thumb');
 
-    for I := 0 to LImages.Count - 1 do begin
-      var LThumb: IHtmlElement := LImages.Items[I];
-      var LRes: IBooruThumb := TBooruThumbBase.Create;
+  for I := 0 to LImages.Count - 1 do begin
+    var LThumb: IHtmlElement := LImages.Items[I];
+    var LRes: IBooruThumb := TBooruThumbBase.Create;
 
-      { Id }
-      var LTmp: string := LThumb.Attributes['id'];
-      LTmp := Copy(LTmp, Low(LTmp) + 1, Length(LTmp)); { like s7193632 }
-      LRes.Id := StrToInt64(LTmp);
+    { Id }
+    var LTmp: string := LThumb.Attributes['id'];
+    LTmp := Copy(LTmp, Low(LTmp) + 1, Length(LTmp)); { like s7193632 }
+    LRes.Id := StrToInt64(LTmp);
 
-      { Thumbnail }
-      var LPrev := FindXByClass(LThumb, 'preview');
-      if Assigned(LPrev) then begin
+    { Thumbnail }
+    var LPrev := FindXByClass(LThumb, 'preview');
+    if Assigned(LPrev) then begin
 
-        { Thumbnail URL }
-        LRes.Thumbnail := NormalizeUrl(LPrev.Attributes['src']);
+      { Thumbnail URL }
+      LRes.Thumbnail := NormalizeUrl(LPrev.Attributes['src']);
 
-        { Tags }
-        LTmp := Trim(LPrev.Attributes['title']);
-        LRes.TagsValues := NormalizeTags(LTmp.Split([' '], TStringSplitOptions.ExcludeEmpty));
+      { Tags }
+      LTmp := Trim(LPrev.Attributes['title']);
+      LRes.TagsValues := NormalizeTags(LTmp.Split([' '], TStringSplitOptions.ExcludeEmpty));
 
-      end;
-
-      Result := Result + [LRes];
     end;
-  except
-    On E: Exception do
-      if not HandleExcept(E, 'ParsePostsFromPage') then raise;
+
+    Result := Result + [LRes];
   end;
 end;
 
-class function TRule34xxxParser.ParseCommentsFromPostPage(const ASource: string): TBooruCommentAr;
+class function TRule34xxxParser.DoParseCommentsFromPostPage(const ASource: string): TBooruCommentAr;
 var
   LDoc: IHtmlElement;
 begin
   LDoc := ParserHtml(ASource);
-  Result := ParseCommentsFromPostPage(LDoc);
+  Result := DoParseCommentsFromPostPage(LDoc);
 end;
 
-class function TRule34xxxParser.ParseCommentsFromPostPage(ASource: IHtmlElement): TBooruCommentAr;
+class function TRule34xxxParser.DoParseCommentsFromPostPage(ASource: IHtmlElement): TBooruCommentAr;
 var
   LStr: string;
   I: integer;
@@ -122,7 +117,7 @@ begin
   end;
 end;
 
-class function TRule34xxxParser.ParsePostFromPage(const ASource: string): IBooruPost;
+class function TRule34xxxParser.DoParsePostFromPage(const ASource: string): IBooruPost;
 var
   LDoc: IHtmlElement;
   I: integer;
@@ -131,102 +126,96 @@ var
   LStr: string;
 begin
   Result := TBooruPostBase.Create;
-  try
+  { Fix: https://github.com/Kisspeace/NsfwBox/issues/8 }
+  var PROBLEM_SYMPTOM: string := '&amp;id=" ';
+  if (ASource.IndexOf(PROBLEM_SYMPTOM) <> -1) then
+  begin
+    var LPatchedSource := ASource.Replace(
+      PROBLEM_SYMPTOM, '&amp;id=',
+      [rfReplaceAll, rfIgnoreCase]);
+    LDoc := ParserHtml(LPatchedSource);
+  end else
+  { Fix end. }
+    LDoc := ParserHtml(ASource);
 
-    { Fix: https://github.com/Kisspeace/NsfwBox/issues/8 }
-    var PROBLEM_SYMPTOM: string := '&amp;id=" ';
-    if (ASource.IndexOf(PROBLEM_SYMPTOM) <> -1) then
-    begin
-      var LPatchedSource := ASource.Replace(
-        PROBLEM_SYMPTOM, '&amp;id=',
-        [rfReplaceAll, rfIgnoreCase]);
-      LDoc := ParserHtml(LPatchedSource);
-    end else
-    { Fix end. }
-      LDoc := ParserHtml(ASource);
+  { Tags }
+  var LTagBar := FindXById(LDoc, 'tag-sidebar');
 
-    { Tags }
-    var LTagBar := FindXById(LDoc, 'tag-sidebar');
+  if Assigned(LTagBar) then begin
+    var LTags := FindAllByClass(LTagBar, 'tag');
+    for I := 0 to LTags.Count - 1 do begin
+      var LTag := LTags.Items[I];
+      var LNewTag: IBooruTag := TBooruTagBase.Create;
 
-    if Assigned(LTagBar) then begin
-      var LTags := FindAllByClass(LTagBar, 'tag');
-      for I := 0 to LTags.Count - 1 do begin
-        var LTag := LTags.Items[I];
-        var LNewTag: IBooruTag := TBooruTagBase.Create;
+      { Tag type }
+      LNewTag.Kind := GetTagTypeByClass(LTag.Attributes['class']);
 
-        { Tag type }
-        LNewTag.Kind := GetTagTypeByClass(LTag.Attributes['class']);
+      { Tag value (name) }
+      LTmps := LTag.FindX('//a');
+      if (LTmps.Count > 1) then
+        LNewTag.Value := NormalizeTag(LTmps.Items[1].InnerHtml)
+      else if (LTmps.Count > 0) then
+        LNewTag.Value := NormalizeTag(LTmps.Items[0].InnerHtml);
 
-        { Tag value (name) }
-        LTmps := LTag.FindX('//a');
-        if (LTmps.Count > 1) then
-          LNewTag.Value := NormalizeTag(LTmps.Items[1].InnerHtml)
-        else if (LTmps.Count > 0) then
-          LNewTag.Value := NormalizeTag(LTmps.Items[0].InnerHtml);
+      { Tag count }
+      var LTagCount := FindXByClass(LTag, 'tag-count');
+      if Assigned(LTagCount) then
+        LNewTag.Count := StrToInt(LTagCount.InnerText);
 
-        { Tag count }
-        var LTagCount := FindXByClass(LTag, 'tag-count');
-        if Assigned(LTagCount) then
-          LNewTag.Count := StrToInt(LTagCount.InnerText);
-
-        Result.Tags.Add(LNewTag);
-      end;
-
-      { Image sapmple }
-      var LImage := FindXById(LDoc, 'image');
-      if Assigned(LImage) then
-        Result.SampleUrl := NormalizeUrl(LImage.Attributes['src']);
-
+      Result.Tags.Add(LNewTag);
     end;
 
-    var LStats := FindXById(LDoc, 'stats');
-    if Assigned(LStats) then begin
-      LTmps := LStats.FindX('//li');
-      if LTmps.Count > 0 then
-      begin
-        { Id }
-        LStr := LTmps.Items[0].InnerText;
-        LStr := Trim(LStr.Remove(0, 4));
-        Result.Id := StrToInt64(LStr);
+    { Image sapmple }
+    var LImage := FindXById(LDoc, 'image');
+    if Assigned(LImage) then
+      Result.SampleUrl := NormalizeUrl(LImage.Attributes['src']);
 
-        if LTmps.Count > 1 then begin
-          { Posted by }
-          try
-            var LTmps2 := LTmps[1].Find('a');
-            if LTmps2.Count > 0 then
-              Result.Uploader := Trim(LTmps2[0].Text);
-          except
+  end;
 
-          end;
+  var LStats := FindXById(LDoc, 'stats');
+  if Assigned(LStats) then begin
+    LTmps := LStats.FindX('//li');
+    if LTmps.Count > 0 then
+    begin
+      { Id }
+      LStr := LTmps.Items[0].InnerText;
+      LStr := Trim(LStr.Remove(0, 4));
+      Result.Id := StrToInt64(LStr);
 
-          { Score }
-          try
-            var LScore := FindXById(LStats, 'psc' + Result.id.ToString);
-            if Assigned(LScore) then
-              Result.Score := StrToInt(LScore.InnerText);
-          except
+      if LTmps.Count > 1 then begin
+        { Posted by }
+        try
+          var LTmps2 := LTmps[1].Find('a');
+          if LTmps2.Count > 0 then
+            Result.Uploader := Trim(LTmps2[0].Text);
+        except
 
-          end;
+        end;
+
+        { Score }
+        try
+          var LScore := FindXById(LStats, 'psc' + Result.id.ToString);
+          if Assigned(LScore) then
+            Result.Score := StrToInt(LScore.InnerText);
+        except
+
         end;
       end;
     end;
-
-    var LLinks := FindXByClass(LDoc, 'sidebar');
-    if Assigned(LLinks) then
-    begin
-      { ContentUrl }
-      LTmp := FindByText(LLinks, 'Original image', True, True);
-      if Assigned(LTmp) then
-        Result.ContentUrl := NormalizeUrl(LTmp.Attributes['href']);
-    end;
-
-    { Comments }
-    var LNewComments := ParseCommentsFromPostPage(LDoc);
-    Result.Comments.AddRange(LNewComments);
-  except
-    On E: Exception do
-      if not HandleExcept(E, 'ParsePostFromPage') then raise;
   end;
+
+  var LLinks := FindXByClass(LDoc, 'sidebar');
+  if Assigned(LLinks) then
+  begin
+    { ContentUrl }
+    LTmp := FindByText(LLinks, 'Original image', True, True);
+    if Assigned(LTmp) then
+      Result.ContentUrl := NormalizeUrl(LTmp.Attributes['href']);
+  end;
+
+  { Comments }
+  var LNewComments := DoParseCommentsFromPostPage(LDoc);
+  Result.Comments.AddRange(LNewComments);
 end;
 
 end.

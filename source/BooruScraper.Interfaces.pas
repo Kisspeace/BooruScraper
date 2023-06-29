@@ -266,13 +266,16 @@ type
       ///end;
       ///</summary>
       class function HandleExcept(E: Exception; AMethodName: string): boolean;
+      class function DoParsePostsFromPage(const ASource: string): TBooruThumbAr; virtual; abstract;
+      class function DoParsePostFromPage(const ASource: string): IBooruPost; virtual; abstract;
+      class function DoParseCommentsFromPostPage(const ASource: string): TBooruCommentAr; virtual; abstract;
     public
       /// <summary>Parse thumbnail items from HTML page.</summary>
-      class function ParsePostsFromPage(const ASource: string): TBooruThumbAr; virtual; abstract;
+      class function ParsePostsFromPage(const ASource: string): TBooruThumbAr;
       /// <summary>Parse full post data from HTML page.</summary>
-      class function ParsePostFromPage(const ASource: string): IBooruPost; virtual; abstract;
+      class function ParsePostFromPage(const ASource: string): IBooruPost;
       /// <summary>Parse only comments from HTML page.</summary>
-      class function ParseCommentsFromPostPage(const ASource: string): TBooruCommentAr; virtual; abstract;
+      class function ParseCommentsFromPostPage(const ASource: string): TBooruCommentAr;
   End;
 
   TBooruParserClass = Class of TBooruParser;
@@ -346,6 +349,39 @@ begin
       [E.ClassName, Self.ClassName, AMethodName, E.Message]
     );
   end else Result := False;
+end;
+
+class function TBooruParser.ParseCommentsFromPostPage(
+  const ASource: string): TBooruCommentAr;
+begin
+  try
+    Result := DoParseCommentsFromPostPage(ASource);
+  except
+    On E: Exception do
+      if not HandleExcept(E, 'ParseCommentsFromPostPage') then raise;
+  end;
+end;
+
+class function TBooruParser.ParsePostFromPage(
+  const ASource: string): IBooruPost;
+begin
+  try
+    Result := DoParsePostFromPage(ASource);
+  except
+    On E: Exception do
+      if not HandleExcept(E, 'ParsePostFromPage') then raise;
+  end;
+end;
+
+class function TBooruParser.ParsePostsFromPage(
+  const ASource: string): TBooruThumbAr;
+begin
+  try
+    Result := DoParsePostsFromPage(ASource);
+  except
+    On E: Exception do
+      if not HandleExcept(E, 'ParsePostsFromPage') then raise;
+  end;
 end;
 
 end.

@@ -12,30 +12,30 @@ type
     private
       const URL_FIX_HOST = DBBEPISMOE_URL;
       class procedure ParseTagsAndThumbnail(AElement: IHtmlElement; AItem: IBooruPost);
-    public
-      class function ParsePostsFromPage(const ASource: string): TBooruThumbAr; override;
-      class function ParsePostFromPage(const ASource: string): IBooruPost; override;
-      class function ParseCommentsFromPostPage(const ASource: string): TBooruCommentAr; overload; override;
-      class function ParseCommentsFromPostPage(ASource: IHtmlElement): TBooruCommentAr; overload;
+    protected
+      class function DoParsePostsFromPage(const ASource: string): TBooruThumbAr; override;
+      class function DoParsePostFromPage(const ASource: string): IBooruPost; override;
+      class function DoParseCommentsFromPostPage(const ASource: string): TBooruCommentAr; overload; override;
+      class function DoParseCommentsFromPostPage(ASource: IHtmlElement): TBooruCommentAr; overload;
   End;
 
 implementation
 
 { TBepisDbParser }
 
-class function TBepisDbParser.ParseCommentsFromPostPage(
+class function TBepisDbParser.DoParseCommentsFromPostPage(
   const ASource: string): TBooruCommentAr;
 begin
 
 end;
 
-class function TBepisDbParser.ParseCommentsFromPostPage(
+class function TBepisDbParser.DoParseCommentsFromPostPage(
   ASource: IHtmlElement): TBooruCommentAr;
 begin
 
 end;
 
-class function TBepisDbParser.ParsePostFromPage(
+class function TBepisDbParser.DoParsePostFromPage(
   const ASource: string): IBooruPost;
 var
   LDoc: IHtmlElement;
@@ -43,37 +43,32 @@ var
   LThumb: IHtmlElement;
   LStr: string;
 begin
-  try
-    LDoc := ParserHtml(ASource);
-    LThumb := FindXById(LDoc, 'thumbnail-container');
-    if Assigned(LThumb) then
-    begin
-      Result := TBooruPostBase.Create;
-      ParseTagsAndThumbnail(LThumb, Result);
+  LDoc := ParserHtml(ASource);
+  LThumb := FindXById(LDoc, 'thumbnail-container');
+  if Assigned(LThumb) then
+  begin
+    Result := TBooruPostBase.Create;
+    ParseTagsAndThumbnail(LThumb, Result);
 
-      { Post Id }
-      LHead := FindXFirst(LDoc, '//head');
-      if Assigned(LHead) then begin
-        var LUrlProp := FindMetaProperty(LHead, 'og:url');
-        if Assigned(LUrlProp) then begin
-          LStr := LUrlProp.Attrs['content'];
-          LStr := Trim(GetAfter(LStr, 'view/'));
-          Result.Id := StrToInt64(LStr);
-        end;
+    { Post Id }
+    LHead := FindXFirst(LDoc, '//head');
+    if Assigned(LHead) then begin
+      var LUrlProp := FindMetaProperty(LHead, 'og:url');
+      if Assigned(LUrlProp) then begin
+        LStr := LUrlProp.Attrs['content'];
+        LStr := Trim(GetAfter(LStr, 'view/'));
+        Result.Id := StrToInt64(LStr);
       end;
-
-      { Content URL - Playcard }
-      var LBtnDownload := FindXByClass(LDoc, 'btn-primary');
-      if Assigned(LBtnDownload) then
-        Result.ContentUrl := URL_FIX_HOST + LBtnDownload.Attrs['href'];
     end;
-  except
-    On E: Exception do
-      if not HandleExcept(E, 'ParsePostFromPage') then raise;
+
+    { Content URL - Playcard }
+    var LBtnDownload := FindXByClass(LDoc, 'btn-primary');
+    if Assigned(LBtnDownload) then
+      Result.ContentUrl := URL_FIX_HOST + LBtnDownload.Attrs['href'];
   end;
 end;
 
-class function TBepisDbParser.ParsePostsFromPage(
+class function TBepisDbParser.DoParsePostsFromPage(
   const ASource: string): TBooruThumbAr;
 var
   LDoc: IHtmlElement;
@@ -84,40 +79,35 @@ var
   LStr: string;
   I, N: integer;
 begin
-  try
-    LDoc := ParserHtml(ASource);
-    LThumbContainer := FindXById(LDoc, 'inner-card-body');
+  LDoc := ParserHtml(ASource);
+  LThumbContainer := FindXById(LDoc, 'inner-card-body');
 
-    if Assigned(LThumbContainer) then
+  if Assigned(LThumbContainer) then
+  begin
+    LThumbs := FindAllByClass(LDoc, 'card-block');
+    for I := 0 to LThumbs.Count - 1 do
     begin
-      LThumbs := FindAllByClass(LDoc, 'card-block');
-      for I := 0 to LThumbs.Count - 1 do
-      begin
-        LThumb := LThumbs[I];
-        LTmp := FindXFirst(LThumb, '//a');
+      LThumb := LThumbs[I];
+      LTmp := FindXFirst(LThumb, '//a');
 
-        if Assigned(LTmp) then begin
-          var LItem: IBooruPost := TBooruPostBase.Create;
+      if Assigned(LTmp) then begin
+        var LItem: IBooruPost := TBooruPostBase.Create;
 
-          { Item id }
-          LStr := LTmp.Attrs['href'];
-          LStr := Trim(GetAfter(LStr, 'view/'));
-          LItem.Id := StrToInt64(LStr);
+        { Item id }
+        LStr := LTmp.Attrs['href'];
+        LStr := Trim(GetAfter(LStr, 'view/'));
+        LItem.Id := StrToInt64(LStr);
 
-          ParseTagsAndThumbnail(LThumb, LItem);
+        ParseTagsAndThumbnail(LThumb, LItem);
 
-          { Content URL - Playcard }
-          var LBtnDownload := FindXByClass(LThumb, 'btn-primary');
-          if Assigned(LBtnDownload) then
-            LItem.ContentUrl := URL_FIX_HOST + LBtnDownload.Attrs['href'];
+        { Content URL - Playcard }
+        var LBtnDownload := FindXByClass(LThumb, 'btn-primary');
+        if Assigned(LBtnDownload) then
+          LItem.ContentUrl := URL_FIX_HOST + LBtnDownload.Attrs['href'];
 
-          Result := Result + [LItem];
-        end;
+        Result := Result + [LItem];
       end;
     end;
-  except
-    On E: Exception do
-      if not HandleExcept(E, 'ParsePostsFromPage') then raise;
   end;
 end;
 

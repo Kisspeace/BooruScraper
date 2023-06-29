@@ -11,34 +11,28 @@ type
   Te621Parser = Class(TBooruParser)
     protected
       class procedure ParseDefValues(ANode: IHtmlElement; const APost: IBooruPost);
-    public
-      class function ParsePostsFromPage(const ASource: string): TBooruThumbAr; override;
-      class function ParsePostFromPage(const ASource: string): IBooruPost; override;
-      class function ParseCommentsFromPostPage(const ASource: string): TBooruCommentAr; overload; override;
-      class function ParseCommentsFromPostPage(ASource: IHtmlElement): TBooruCommentAr; overload;
+      class function DoParsePostsFromPage(const ASource: string): TBooruThumbAr; override;
+      class function DoParsePostFromPage(const ASource: string): IBooruPost; override;
+      class function DoParseCommentsFromPostPage(const ASource: string): TBooruCommentAr; overload; override;
+      class function DoParseCommentsFromPostPage(ASource: IHtmlElement): TBooruCommentAr; overload;
   End;
 
 implementation
 
 { Te621Parser }
 
-class function Te621Parser.ParseCommentsFromPostPage(
+class function Te621Parser.DoParseCommentsFromPostPage(
   const ASource: string): TBooruCommentAr;
 var
   LDoc: IHtmlElement;
   I: integer;
 begin
   Result := [];
-  try
-    LDoc := ParserHtml(ASource);
-    Result := ParseCommentsFromPostPage(LDoc);
-  except
-    On E: Exception do
-      if not HandleExcept(E, 'ParseCommentsFromPostPage') then raise;
-  end;
+  LDoc := ParserHtml(ASource);
+  Result := DoParseCommentsFromPostPage(LDoc);
 end;
 
-class function Te621Parser.ParseCommentsFromPostPage(
+class function Te621Parser.DoParseCommentsFromPostPage(
   ASource: IHtmlElement): TBooruCommentAr;
 var
   I: integer;
@@ -90,7 +84,7 @@ begin
   APost.Height := LAttrs.Int('data-height');
 end;
 
-class function Te621Parser.ParsePostFromPage(const ASource: string): IBooruPost;
+class function Te621Parser.DoParsePostFromPage(const ASource: string): IBooruPost;
 var
   LDoc: IHtmlElement;
   LImg: IHtmlElement;
@@ -124,32 +118,27 @@ var
 
 begin
   Result := TBooruPostBase.Create;
-  try
-    LDoc := ParserHtml(ASource);
-    LImg := FindXById(LDoc, 'image-container');
+  LDoc := ParserHtml(ASource);
+  LImg := FindXById(LDoc, 'image-container');
 
-    if Assigned(LImg) then
-      ParseDefValues(LImg, Result);
+  if Assigned(LImg) then
+    ParseDefValues(LImg, Result);
 
-    LTagList := FindXById(LDoc, 'tag-list');
-    if Assigned(LTagList) then
-    begin
-      ParseTags('0', TagGeneral);
-      ParseTags('1', TagArtist);
-      ParseTags('3', TagCopyright);
-      ParseTags('4', TagCharacter);
-      ParseTags('5', TagSpecies);
-      ParseTags('6', TagInvalid);
-      ParseTags('7', TagMetadata);
-      ParseTags('8', TagLore);
-    end;
-  except
-    On E: Exception do
-      if not HandleExcept(E, 'ParsePostFromPage') then raise;
+  LTagList := FindXById(LDoc, 'tag-list');
+  if Assigned(LTagList) then
+  begin
+    ParseTags('0', TagGeneral);
+    ParseTags('1', TagArtist);
+    ParseTags('3', TagCopyright);
+    ParseTags('4', TagCharacter);
+    ParseTags('5', TagSpecies);
+    ParseTags('6', TagInvalid);
+    ParseTags('7', TagMetadata);
+    ParseTags('8', TagLore);
   end;
 end;
 
-class function Te621Parser.ParsePostsFromPage(
+class function Te621Parser.DoParsePostsFromPage(
   const ASource: string): TBooruThumbAr;
 var
   LDoc: IHtmlElement;
@@ -160,27 +149,22 @@ var
   I: integer;
 begin
   Result := [];
-  try
-    LDoc := ParserHtml(ASource);
-    LImgList := FindXById(LDoc, 'posts-container');
-    if Assigned(LImgList) then
+  LDoc := ParserHtml(ASource);
+  LImgList := FindXById(LDoc, 'posts-container');
+  if Assigned(LImgList) then
+  begin
+    LImages := FindAllByClass(LImgList, 'post-preview');
+    for I := 0 to LImages.Count - 1 do
     begin
-      LImages := FindAllByClass(LImgList, 'post-preview');
-      for I := 0 to LImages.Count - 1 do
-      begin
-        var LThumb: IBooruPost := TBooruPostBase.Create;
-        ParseDefValues(LImages[I], LThumb);
+      var LThumb: IBooruPost := TBooruPostBase.Create;
+      ParseDefValues(LImages[I], LThumb);
 
-        { Tags }
-        LTags := ParseTagsT(LImages[I].Attributes['data-tags']);
-        LThumb.Tags.AddRange(LTags);
+      { Tags }
+      LTags := ParseTagsT(LImages[I].Attributes['data-tags']);
+      LThumb.Tags.AddRange(LTags);
 
-        Result := Result + [LThumb];
-      end;
+      Result := Result + [LThumb];
     end;
-  except
-    On E: Exception do
-      if not HandleExcept(E, 'ParsePostsFromPage') then raise;
   end;
 end;
 

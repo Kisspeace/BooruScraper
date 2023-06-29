@@ -9,31 +9,31 @@ uses
 type
 
   TTbibOrgAPIParser = Class(TBooruParser)
-    public
-      class function ParsePostsFromPage(const ASource: string): TBooruThumbAr; override;
-      class function ParsePostFromNode(ANode: IHtmlElement): IBooruPost;
-      class function ParsePostFromPage(const ASource: string): IBooruPost; override;
-      class function ParseCommentsFromPostPage(const ASource: string): TBooruCommentAr; overload; override;
-      class function ParseCommentsFromPostPage(ASource: IHtmlElement): TBooruCommentAr; overload;
+    protected
+      class function DoParsePostsFromPage(const ASource: string): TBooruThumbAr; override;
+      class function DoParsePostFromNode(ANode: IHtmlElement): IBooruPost;
+      class function DoParsePostFromPage(const ASource: string): IBooruPost; override;
+      class function DoParseCommentsFromPostPage(const ASource: string): TBooruCommentAr; overload; override;
+      class function DoParseCommentsFromPostPage(ASource: IHtmlElement): TBooruCommentAr; overload;
   End;
 
 implementation
 
 { TTbibOrgAPIParser }
 
-class function TTbibOrgAPIParser.ParseCommentsFromPostPage(
+class function TTbibOrgAPIParser.DoParseCommentsFromPostPage(
   const ASource: string): TBooruCommentAr;
 begin
 
 end;
 
-class function TTbibOrgAPIParser.ParseCommentsFromPostPage(
+class function TTbibOrgAPIParser.DoParseCommentsFromPostPage(
   ASource: IHtmlElement): TBooruCommentAr;
 begin
 
 end;
 
-class function TTbibOrgAPIParser.ParsePostFromNode(
+class function TTbibOrgAPIParser.DoParsePostFromNode(
   ANode: IHtmlElement): IBooruPost;
 var
   LTmp: string;
@@ -106,22 +106,17 @@ begin
   end;
 end;
 
-class function TTbibOrgAPIParser.ParsePostFromPage(
+class function TTbibOrgAPIParser.DoParsePostFromPage(
   const ASource: string): IBooruPost;
 var
   LItems: TBooruThumbAr;
 begin
-  try
-    LItems := Self.ParsePostsFromPage(ASource);
-    if (Length(LItems) > 0) then
-      Supports(Litems[0], IBooruPost, Result);
-  except
-    On E: Exception do
-      if not HandleExcept(E, 'ParsePostFromPage') then raise;
-  end;
+  LItems := Self.ParsePostsFromPage(ASource);
+  if (Length(LItems) > 0) then
+    Supports(Litems[0], IBooruPost, Result);
 end;
 
-class function TTbibOrgAPIParser.ParsePostsFromPage(
+class function TTbibOrgAPIParser.DoParsePostsFromPage(
   const ASource: string): TBooruThumbAr;
 var
   LDoc: IHtmlElement;
@@ -130,21 +125,16 @@ var
   I: integer;
 begin
   Result := [];
-  try
-    LDoc := ParserHtml(ASource);
-    LPostsEl := FindXFirst(LDoc, '//posts');
+  LDoc := ParserHtml(ASource);
+  LPostsEl := FindXFirst(LDoc, '//posts');
 
-    if Assigned(LPostsEl) then
-    begin
-      for I := 0 to LPostsEl.ChildrenCount - 1 do begin
-        LElement := LPostsEl.Children[I];
-        if (LElement.TagName = 'POST') then
-          Result := Result + [Self.ParsePostFromNode(LElement)];
-      end;
+  if Assigned(LPostsEl) then
+  begin
+    for I := 0 to LPostsEl.ChildrenCount - 1 do begin
+      LElement := LPostsEl.Children[I];
+      if (LElement.TagName = 'POST') then
+        Result := Result + [Self.DoParsePostFromNode(LElement)];
     end;
-  except
-    On E: Exception do
-      if not HandleExcept(E, 'ParsePostsFromPage') then raise;
   end;
 end;
 
