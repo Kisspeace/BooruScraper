@@ -3,7 +3,22 @@
 interface
 uses
   Classes, Types, SysUtils, System.Generics.Collections,
-  HtmlParserEx, BooruScraper.Interfaces, system.Net.URLClient;
+  HtmlParserEx, BooruScraper.Interfaces, system.Net.URLClient,
+  BooruScraper.BaseTypes;
+
+type
+
+  /// <summary>Use for safe attributes read.</summaru>
+  TSafeAttributeReader = Record
+    public
+      Target: IHtmlElement;
+      function Str(const AName: string): string;
+      function Int(const AName: string): integer;
+      function Int64(const AName: string): int64;
+      constructor Create(ATarget: IHtmlElement);
+  End;
+
+  TSAttrReader = TSafeAttributeReader;
 
   function FindXFirst(AElement: IHtmlElement; const AXPath: WideString): IHtmlElement;
   function FindXByClass(AElement: IHtmlElement; AClass: string): IHtmlElement;
@@ -20,13 +35,16 @@ uses
   function NormalizeTag(ATag: string): string;
   function NormalizeTags(ATags: TArray<String>): TArray<String>;
 
+  /// <summary>use for parse and normalize tags from attribute like: data-tags="cum cream clothes"</summaru>
+  function ParseTags(const ATagsString: string): TArray<String>;
+  function ParseTagsT(const ATagsString: string): TBooruTagAr;
+
   function NormalizeUrl(AUrlStr: string): string;
   function FilterCharSet(const ASource: string; const AAllowChars: array of Char): string;
   function OnlyDigits(const ASource: string): string;
 
   /// <summary>input like: "futa ass lesbian", output: "futa+ass+lesbian"</summaru>
   function PrepareSearchReq(const ARequest: string): string;
-
 const
 
   BOORU_TIME_FORMAT: TFormatSettings = (
@@ -224,6 +242,66 @@ end;
 function PrepareSearchReq(const ARequest: string): string;
 begin
   Result := ARequest.Replace(' ', '+', [rfReplaceAll]).Trim;
+end;
+
+function ParseTags(const ATagsString: string): TArray<String>;
+begin
+  Result := NormalizeTags(ATagsString.Split([' '], TStringSplitOptions.ExcludeEmpty));
+end;
+
+function ParseTagsT(const ATagsString: string): TBooruTagAr;
+var
+  LTags: TArray<string>;
+  LTag: IBooruTag;
+  I: integer;
+begin
+  LTags := ParseTags(ATagsString);
+  SetLength(Result, Length(LTags));
+  for I := Low(LTags) to High(LTags) do
+  begin
+    LTag := TBooruTagBase.Create;
+    LTag.Value := LTags[I];
+    LTag.Kind := TBooruTagType.TagGeneral;
+    Result[I] := LTag;
+  end;
+end;
+
+{ TSafeAttributeParser }
+
+constructor TSafeAttributeReader.Create(ATarget: IHtmlElement);
+begin
+  Target := ATarget;
+end;
+
+function TSafeAttributeReader.Int(const AName: string): integer;
+var
+  Tmp: string;
+begin
+  Result := BOORU_NOTSET; { Default value }
+  if Target.HasAttribute(AName) then
+  begin
+    Tmp := Target.Attributes[AName];
+    TryStrToInt(Tmp, Result)
+  end;
+end;
+
+function TSafeAttributeReader.Int64(const AName: string): int64;
+var
+  Tmp: string;
+begin
+  Result := BOORU_NOTSET; { Default value }
+  if Target.HasAttribute(AName) then
+  begin
+    Tmp := Target.Attributes[AName];
+    TryStrToInt64(Tmp, Result)
+  end;
+end;
+
+function TSafeAttributeReader.Str(const AName: string): string;
+begin
+  Result := ''; { Default value }
+  if Target.HasAttribute(AName) then
+    Result := Target.Attributes[AName];
 end;
 
 end.
