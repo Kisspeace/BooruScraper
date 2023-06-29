@@ -381,6 +381,7 @@ var
 begin
   LClients := [
     BooruScraper.NewClientRule34xxx,
+    BooruScraper.NewClientE621,
     BooruScraper.NewClientGelbooru,
     BooruScraper.NewClientRealbooru,
     BooruScraper.NewClientRule34us,
@@ -438,9 +439,9 @@ begin
     if Supports(Client, IEnableAllContent, LAllContentSwitch) then
       LAllContentSwitch.EnableAllContent := True;
 
-//    TestAllClients;
+    TestAllClients;
 //    TestBeforeException(Client, True, 'video');
-    TestClient(Client, '', False);
+//    TestClient(Client, '', False);
 //    TestParser(Client.BooruParser, 'e621');
 
     Readln;
