@@ -39,7 +39,9 @@ uses
   BooruScraper.Client.BepisDb in '..\source\BooruScraper.Client.BepisDb.pas',
   BooruScraper.Parser.Kenzatouk in '..\source\BooruScraper.Parser.Kenzatouk.pas',
   BooruScraper.Client.KenzatoUk in '..\source\BooruScraper.Client.KenzatoUk.pas',
-  BooruScraper.Exceptions in '..\source\BooruScraper.Exceptions.pas';
+  BooruScraper.Exceptions in '..\source\BooruScraper.Exceptions.pas',
+  BooruScraper.Parser.e621 in '..\source\BooruScraper.Parser.e621.pas',
+  BooruScraper.Client.e621 in '..\source\BooruScraper.Client.e621.pas';
 
 var
   Client: IBooruClient;
@@ -83,18 +85,24 @@ begin
   LClient := TNetHttpClient.Create(nil);
   try
     SetWebClient(LClient);
+    Writeln('_____________________Request________________________');
+    writeln('URL is ' + AUrl);
+    Writeln('Headers (' + LClient.CustHeaders.Count.ToString + '):');
+    for I := 0 to LClient.CustHeaders.Count - 1 do
+      Writeln(LClient.CustHeaders.Headers[I].Name + ': '
+        + LClient.CustHeaders.Headers[I].Value);
+
     LTimer.Start;
     LResponse := LCLient.Get(AUrl);
     LTimer.Stop;
-    Writeln(LResponse.ContentAsString);
     Writeln('_____________________STATUS_________________________');
     Writeln(LResponse.StatusText + ': ' + LResponse.StatusCode.ToString);
-    Writeln(LTimer.ElapsedMilliseconds.ToString + ' Ms.');
+    Writeln('Elapsed: ' + LTimer.ElapsedMilliseconds.ToString + ' Ms.');
     Writeln('Headers (' + Length(LResponse.Headers).ToString + '):');
     For I := Low(LResponse.Headers) to High(LResponse.Headers) do
-    begin
       Writeln(LResponse.Headers[I].Name + ': ' + LResponse.Headers[I].Value);
-    end;
+    writeln('_____________________CONTENT________________________');
+    Writeln(LResponse.ContentAsString);
   finally
     LClient.Free;
   end;
@@ -166,6 +174,9 @@ begin
     TagMetadata:  Result := 'Metadata';
     TagCharacter: Result := 'Character';
     TagArtist:    Result := 'Artist';
+    TagInvalid:   Result := 'Invalid';
+    TagSpecies:   Result := 'Species';
+    TagLore:      Result := 'Lore';
   end;
 end;
 
@@ -416,19 +427,21 @@ var
 
 begin
   try
+    { https://e621.net/posts/1402994 - for test comments parsing }
+//    TestGet('https://e621.net/posts?tags=equine_penis+female');
     { https://lolibooru.moe/help/api }
 //    Client := BooruScraper.NewClient('');
-    Client := BooruScraper.NewClientDonmaiUs;
+    Client := BooruScraper.NewClientE621;
 //    Client.Host := '';
     SetWebClient(TBooruClientBase(Client).Client, Client.Host);
 
     if Supports(Client, IEnableAllContent, LAllContentSwitch) then
       LAllContentSwitch.EnableAllContent := True;
 
-    TestAllClients;
+//    TestAllClients;
 //    TestBeforeException(Client, True, 'video');
-//    TestClient(Client, '', True);
-//    TestParser(Client.BooruParser, 'gelbooru');
+    TestClient(Client, '', False);
+//    TestParser(Client.BooruParser, 'e621');
 
     Readln;
   except

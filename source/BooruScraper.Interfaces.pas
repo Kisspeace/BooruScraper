@@ -26,7 +26,11 @@ type
     TagCopyright,
     TagMetadata,
     TagCharacter,
-    TagArtist
+    TagArtist,
+    { new e621 types below }
+    TagSpecies,
+    TagInvalid,
+    TagLore
   );
 
   IAssignAndClone = Interface

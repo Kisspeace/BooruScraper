@@ -35,6 +35,7 @@ const
   /// <summary>Base url for kenzato.uk/booru.</summary>
   KENZATOUKBOORU_URL = 'https://kenzato.uk/booru';
 
+  E621NET_URL = 'https://e621.net';
 implementation
 
 end.
